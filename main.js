@@ -1,5 +1,7 @@
 import { createA320 } from "./aircraft/a320.js";
-
+const aircraft = createA320(THREE);
+aircraft.position.set(0, 7.5, 0);
+scene.add(aircraft);
 // ============================================
 // A320-200 FLIGHT SIMULATOR - VERSION 0.3
 // Game/simulation flight model, not real aircraft data
