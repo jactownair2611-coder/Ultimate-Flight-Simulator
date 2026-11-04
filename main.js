@@ -1,7 +1,5 @@
 import { createA320 } from "./aircraft/a320.js";
-const aircraft = createA320(THREE);
-aircraft.position.set(0, 7.5, 0);
-scene.add(aircraft);
+
 // ============================================
 // A320-200 FLIGHT SIMULATOR - VERSION 0.3
 // Game/simulation flight model, not real aircraft data
@@ -77,7 +75,8 @@ for (let x = -20; x <= 20; x += 5) {
 // Forward direction is local -Z
 // ============================================
 
-const aircraft = new THREE.Group();
+const aircraft = createA320(THREE);
+aircraft.position.set(0, 7.5, 0);
 scene.add(aircraft);
 
 const white = new THREE.MeshStandardMaterial({
