@@ -1,5 +1,4 @@
 import { createA320 } from "./aircraft/a320.js";
-import * as THREE from "three";
 
 // ============================================
 // A320-200 FLIGHT SIMULATOR - VERSION 0.3
