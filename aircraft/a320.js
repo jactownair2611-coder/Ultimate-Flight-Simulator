@@ -249,6 +249,171 @@ export function createA320(THREE) {
     15.4, 0, 2.3
   );
 
+  // ============================================
+  // VERSION 0.5 - A320 COCKPIT
+  // ============================================
+
+  const cockpit = new THREE.Group();
+  plane.add(cockpit);
+
+  const cockpitPanel = new THREE.MeshStandardMaterial({
+    color: 0x202a32,
+    roughness: 0.8
+  });
+
+  const screenMaterial = new THREE.MeshStandardMaterial({
+    color: 0x07131c,
+    emissive: 0x061c28,
+    roughness: 0.3
+  });
+
+  const screenGreen = new THREE.MeshStandardMaterial({
+    color: 0x45e5a0,
+    emissive: 0x145b40
+  });
+
+  const screenBlue = new THREE.MeshStandardMaterial({
+    color: 0x35a9ef,
+    emissive: 0x123d65
+  });
+
+  const screenWhite = new THREE.MeshStandardMaterial({
+    color: 0xe7f4ff,
+    emissive: 0x405060
+  });
+
+  function cockpitBox(w, h, d, material, x, y, z) {
+    return addMesh(
+      new THREE.BoxGeometry(w, h, d),
+      material,
+      x, y, z,
+      cockpit
+    );
+  }
+
+  // Main instrument dashboard
+  cockpitBox(
+    4.4, 0.65, 0.55,
+    cockpitPanel,
+    0, 0.35, -16.6
+  );
+
+  // Dashboard upper edge
+  cockpitBox(
+    4.5, 0.12, 0.6,
+    grey,
+    0, 0.75, -16.55
+  );
+
+  // Display builder
+  function makeDisplay(x, y, width, height, type) {
+
+    // Display frame
+    cockpitBox(
+      width + 0.16,
+      height + 0.16,
+      0.12,
+      cockpitPanel,
+      x, y, -16.25
+    );
+
+    // Screen face
+    addMesh(
+      new THREE.PlaneGeometry(width, height),
+      screenMaterial,
+      x, y, -16.18,
+      cockpit
+    );
+
+    // Horizontal display reference line
+    addMesh(
+      new THREE.BoxGeometry(width * 0.75, 0.018, 0.012),
+      screenWhite,
+      x, y - height * 0.27, -16.15,
+      cockpit
+    );
+
+    // Colored flight information graphics
+    if (type === "PFD") {
+
+      addMesh(
+        new THREE.BoxGeometry(width * 0.68, 0.018, 0.012),
+        screenBlue,
+        x, y + height * 0.12, -16.14,
+        cockpit
+      );
+
+      addMesh(
+        new THREE.BoxGeometry(0.018, height * 0.55, 0.012),
+        screenGreen,
+        x, y, -16.14,
+        cockpit
+      );
+
+    } else {
+
+      addMesh(
+        new THREE.CircleGeometry(width * 0.25, 32),
+        screenBlue,
+        x, y, -16.14,
+        cockpit
+      );
+
+      addMesh(
+        new THREE.BoxGeometry(width * 0.7, 0.018, 0.012),
+        screenGreen,
+        x, y, -16.13,
+        cockpit
+      );
+    }
+  }
+
+  // Captain's displays
+  makeDisplay(-1.05, 0.35, 1.15, 0.8, "PFD");
+  makeDisplay(0.15, 0.35, 1.15, 0.8, "ND");
+
+  // First officer's displays
+  makeDisplay(1.35, 0.35, 1.05, 0.8, "PFD");
+
+  // Center pedestal
+  cockpitBox(
+    1.8, 0.35, 2.0,
+    cockpitPanel,
+    0, -0.2, -14.8
+  );
+
+  // Throttle levers
+  for (const x of [-0.25, 0.25]) {
+    cockpitBox(
+      0.12, 0.42, 0.12,
+      grey,
+      x, 0.05, -14.6
+    );
+  }
+
+  // Windscreen lower frame
+  cockpitBox(
+    4.2, 0.12, 0.16,
+    cockpitPanel,
+    0, 1.25, -17.1
+  );
+
+  // Windscreen center divider
+  cockpitBox(
+    0.12, 1.0, 0.12,
+    cockpitPanel,
+    0, 1.75, -17.1
+  );
+
+  // Side window frames
+  for (const side of [-1, 1]) {
+    cockpitBox(
+      0.12, 1.0, 0.12,
+      cockpitPanel,
+      side * 2.0, 1.75, -17.1
+    );
+  }
+
   plane.scale.setScalar(0.8);
   return plane;
 }
