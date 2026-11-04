@@ -1,0 +1,46 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #87ceeb;
+  font-family: Arial, sans-serif;
+}
+
+#hud {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  color: white;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 12px;
+  border-radius: 8px;
+  z-index: 2;
+}
+
+#hud h2 {
+  font-size: 17px;
+  margin: 0 0 12px;
+}
+
+#instruments {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+}
+
+#controls {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 10px 15px;
+  border-radius: 8px;
+  z-index: 2;
+}
