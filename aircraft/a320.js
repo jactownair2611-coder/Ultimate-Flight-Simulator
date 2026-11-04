@@ -44,6 +44,7 @@ export function createA320(THREE) {
     new THREE.CylinderGeometry(1.65, 1.65, 29, 32),
     white, 0, 0, 0
   );
+  body.name = "fuselage";
   body.rotation.x = Math.PI / 2;
 
   // Rounded nose
@@ -51,13 +52,14 @@ export function createA320(THREE) {
     new THREE.SphereGeometry(1.62, 32, 20),
     white, 0, 0, -14.3
   );
+  nose.name = "nose";
   nose.scale.set(1, 0.88, 1.25);
 
-  // Nose tip
-  addMesh(
-    new THREE.SphereGeometry(0.16, 16, 12),
-    grey, 0, 0, -16.2
-  );
+  const noseTip = addMesh(
+  new THREE.SphereGeometry(0.16, 16, 12),
+  grey, 0, 0, -16.2
+);
+noseTip.name = "noseTip";
 
   // Rear fuselage taper
   const tailCone = addMesh(
