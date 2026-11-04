@@ -421,18 +421,13 @@ function updateCamera() {
 
   if (cockpitCamera) {
 
-const cockpitPosition = new THREE.Vector3(
-  0, 1.15, -14.5
-)
-    
-      .applyQuaternion(aircraft.quaternion)
-      .add(aircraft.position);
+const cockpitPosition = new THREE.Vector3(0, 0.92, -11.6)
+    .applyQuaternion(aircraft.quaternion)
+    .add(aircraft.position);
 
-    const cockpitLook = new THREE.Vector3(
-  0, 0.5, -100
-)
-      .applyQuaternion(aircraft.quaternion)
-      .add(aircraft.position);
+const cockpitLook = new THREE.Vector3(0, 0.4, -100)
+    .applyQuaternion(aircraft.quaternion)
+    .add(aircraft.position);
 
     camera.position.copy(cockpitPosition);
     camera.lookAt(cockpitLook);
