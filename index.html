@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultimate Flight Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hud">
+    <h2>ULTIMATE FLIGHT SIMULATOR</h2>
+    <div id="instruments">
+      <span id="speed">SPEED: 0 KTS</span>
+      <span id="altitude">ALTITUDE: 0 FT</span>
+      <span id="throttle">THROTTLE: 0%</span>
+    </div>
+  </div>
+
+  <div id="controls">
+    W/S: Pitch | A/D: Roll | ↑/↓: Throttle
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
