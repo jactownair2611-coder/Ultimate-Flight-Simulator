@@ -1,4 +1,4 @@
-
+import { createA320 } from "./aircraft/a320.js";
 import * as THREE from "three";
 
 // ============================================
