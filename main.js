@@ -2386,7 +2386,7 @@ if (autopilot.enabled) {
 
     if (
       speed >= TAKEOFF_SPEED &&
-      pitch >= 0.08 &&
+      pitch >= 0.04 &&
       lift > GRAVITY
     ) {
       airborne = true;
