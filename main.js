@@ -1576,6 +1576,215 @@ window.addEventListener("keydown", (event) => {
 
 console.log("VERSION 0.9.4 DAY NIGHT CYCLE LOADED");
 
+// ============================================
+// VERSION 1.0 - DYNAMIC WEATHER SYSTEM
+// ============================================
+
+const weatherModes = [
+  "clear",
+  "cloudy",
+  "rain",
+  "storm"
+];
+
+let currentWeather = 0;
+
+let weatherWindX = 0;
+let weatherWindZ = 0;
+
+// Rain particle system
+const rainCount = 1200;
+const rainPositions = new Float32Array(rainCount * 6);
+
+const rainVelocities = [];
+
+for (let i = 0; i < rainCount; i++) {
+  const x = (Math.random() - 0.5) * 700;
+  const y = Math.random() * 400;
+  const z = (Math.random() - 0.5) * 700;
+
+  const index = i * 6;
+
+  // Start and end of each rain streak
+  rainPositions[index] = x;
+  rainPositions[index + 1] = y;
+  rainPositions[index + 2] = z;
+
+  rainPositions[index + 3] = x;
+  rainPositions[index + 4] = y - 18;
+  rainPositions[index + 5] = z;
+
+  rainVelocities.push({
+    x: x,
+    y: y,
+    z: z
+  });
+}
+
+const rainGeometry = new THREE.BufferGeometry();
+
+rainGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(rainPositions, 3)
+);
+
+const rainMaterial = new THREE.LineBasicMaterial({
+  color: 0xc9e4ff,
+  transparent: true,
+  opacity: 0.55
+});
+
+const rainSystem = new THREE.LineSegments(
+  rainGeometry,
+  rainMaterial
+);
+
+rainSystem.visible = false;
+rainSystem.frustumCulled = false;
+
+scene.add(rainSystem);
+
+// ============================================
+// WEATHER SETTINGS
+// ============================================
+
+function setWeather(mode) {
+  currentWeather = weatherModes.indexOf(mode);
+
+  if (currentWeather < 0) {
+    currentWeather = 0;
+  }
+
+  weatherWindX = 0;
+  weatherWindZ = 0;
+
+  switch (mode) {
+    case "clear":
+      rainSystem.visible = false;
+      cloudMaterial.opacity = 0.35;
+
+      if (scene.fog) {
+        scene.fog.near = 1800;
+        scene.fog.far = 9000;
+      }
+      break;
+
+    case "cloudy":
+      rainSystem.visible = false;
+      cloudMaterial.opacity = 0.9;
+
+      if (scene.fog) {
+        scene.fog.near = 1200;
+        scene.fog.far = 6500;
+      }
+      break;
+
+    case "rain":
+      rainSystem.visible = true;
+      rainMaterial.opacity = 0.55;
+      cloudMaterial.opacity = 0.95;
+
+      weatherWindX = 12;
+      weatherWindZ = 5;
+
+      if (scene.fog) {
+        scene.fog.near = 500;
+        scene.fog.far = 3500;
+      }
+      break;
+
+    case "storm":
+      rainSystem.visible = true;
+      rainMaterial.opacity = 0.85;
+      cloudMaterial.opacity = 1;
+
+      weatherWindX = 28;
+      weatherWindZ = 14;
+
+      if (scene.fog) {
+        scene.fog.near = 250;
+        scene.fog.far = 2000;
+      }
+      break;
+  }
+
+  console.log("WEATHER:", mode.toUpperCase());
+}
+
+// ============================================
+// RAIN MOVEMENT
+// ============================================
+
+function updateRain(dt) {
+  if (!rainSystem.visible) return;
+
+  // Keep rain around the aircraft
+  rainSystem.position.copy(aircraft.position);
+
+  for (let i = 0; i < rainCount; i++) {
+    const particle = rainVelocities[i];
+
+    particle.x -= weatherWindX * dt;
+    particle.y -= 300 * dt;
+    particle.z -= weatherWindZ * dt;
+
+    // Recycle rain above the aircraft
+    if (particle.y < -40) {
+      particle.y = 400 + Math.random() * 100;
+      particle.x = (Math.random() - 0.5) * 700;
+      particle.z = (Math.random() - 0.5) * 700;
+    }
+
+    // Keep particles inside the weather area
+    if (particle.x < -350) particle.x += 700;
+    if (particle.x > 350) particle.x -= 700;
+
+    if (particle.z < -350) particle.z += 700;
+    if (particle.z > 350) particle.z -= 700;
+
+    const index = i * 6;
+
+    rainPositions[index] = particle.x;
+    rainPositions[index + 1] = particle.y;
+    rainPositions[index + 2] = particle.z;
+
+    rainPositions[index + 3] =
+      particle.x - weatherWindX * 0.035;
+
+    rainPositions[index + 4] =
+      particle.y - 18;
+
+    rainPositions[index + 5] =
+      particle.z - weatherWindZ * 0.035;
+  }
+
+  rainGeometry.attributes.position.needsUpdate = true;
+}
+
+// ============================================
+// WEATHER CONTROL
+// ============================================
+
+// Press Y to cycle through weather conditions
+window.addEventListener("keydown", (event) => {
+  if (event.repeat) return;
+
+  if (event.key.toLowerCase() === "y") {
+    currentWeather++;
+
+    if (currentWeather >= weatherModes.length) {
+      currentWeather = 0;
+    }
+
+    setWeather(weatherModes[currentWeather]);
+  }
+});
+
+// Start with clear weather
+setWeather("clear");
+
+console.log("VERSION 1.0 WEATHER SYSTEM LOADED");
+
 
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
@@ -2134,6 +2343,7 @@ updateGroundVehicles(dt);
 updateClouds(dt);
 updateRoadTraffic(dt);
 updateDayNight(dt);
+updateRain(dt);
 updateCamera();
 updateHUD();
 
