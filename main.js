@@ -469,7 +469,7 @@ enginePower = approach(
 );
 
   // CONTROL TARGETS
-  pitchTarget += pitchInput * dt * 0.45;
+  pitchTarget += pitchInput * dt * 1.2;
   rollTarget += rollInput * dt * 0.85;
 
   if (pitchInput === 0) {
@@ -481,8 +481,9 @@ enginePower = approach(
   }
 
   pitchTarget = THREE.MathUtils.clamp(
-    pitchTarget, -0.15, 0.30
-  );
+  pitchTarget, -0.15, 0.35
+);
+  
 
   rollTarget = THREE.MathUtils.clamp(
     rollTarget, -0.75, 0.75
