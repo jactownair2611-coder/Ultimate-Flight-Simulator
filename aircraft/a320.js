@@ -534,90 +534,216 @@ for (let x = -1.2; x <= 1.2; x += 0.4) {
 // LIVE COCKPIT DISPLAY SYSTEM
 // ============================================
 
+
 plane.userData.updateCockpitDisplays = function(data) {
 
   for (const display of cockpitDisplayScreens) {
 
-    if (display.type !== "PFD") continue;
-
     const ctx = display.ctx;
 
-    // Clear screen
-    ctx.fillStyle = "#071522";
-    ctx.fillRect(0, 0, 512, 512);
+    // ========================================
+    // PRIMARY FLIGHT DISPLAY
+    // ========================================
 
-    // Artificial horizon
-    const pitchOffset = Math.max(
-      -100,
-      Math.min(100, data.pitch * 8)
-    );
+    if (display.type === "PFD") {
 
-    ctx.save();
+      ctx.fillStyle = "#071522";
+      ctx.fillRect(0, 0, 512, 512);
 
-    ctx.translate(256, 250);
-    ctx.rotate(-(data.roll || 0) * Math.PI / 180);
+      const pitchOffset = Math.max(
+        -100,
+        Math.min(100, (data.pitch || 0) * 8)
+      );
 
-    ctx.fillStyle = "#1684bd";
-    ctx.fillRect(-350, -350 + pitchOffset, 700, 350);
+      ctx.save();
 
-    ctx.fillStyle = "#8b542d";
-    ctx.fillRect(-350, pitchOffset, 700, 350);
+      ctx.translate(256, 250);
+      ctx.rotate(-(data.roll || 0) * Math.PI / 180);
 
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(-350, pitchOffset);
-    ctx.lineTo(350, pitchOffset);
-    ctx.stroke();
+      ctx.fillStyle = "#1684bd";
+      ctx.fillRect(-350, -350 + pitchOffset, 700, 350);
 
-    ctx.restore();
+      ctx.fillStyle = "#8b542d";
+      ctx.fillRect(-350, pitchOffset, 700, 350);
 
-    // Aircraft reference symbol
-    ctx.strokeStyle = "#ffd84a";
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.moveTo(175, 250);
-    ctx.lineTo(225, 250);
-    ctx.lineTo(256, 270);
-    ctx.lineTo(287, 250);
-    ctx.lineTo(337, 250);
-    ctx.stroke();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-350, pitchOffset);
+      ctx.lineTo(350, pitchOffset);
+      ctx.stroke();
 
-    // Flight information
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 27px Arial";
+      ctx.restore();
 
-    ctx.fillText("SPD", 20, 40);
-    ctx.fillText("ALT", 405, 40);
+      // Aircraft symbol
+      ctx.strokeStyle = "#ffd84a";
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(175, 250);
+      ctx.lineTo(225, 250);
+      ctx.lineTo(256, 270);
+      ctx.lineTo(287, 250);
+      ctx.lineTo(337, 250);
+      ctx.stroke();
 
-    ctx.font = "bold 36px Arial";
+      // Flight information
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 27px Arial";
 
-    ctx.fillText(
-      Math.round(data.speed || 0).toString(),
-      20, 85
-    );
+      ctx.fillText("SPD", 20, 40);
+      ctx.fillText("ALT", 405, 40);
 
-    ctx.fillText(
-      Math.round(data.altitude || 0).toString(),
-      405, 85
-    );
+      ctx.font = "bold 36px Arial";
 
-    ctx.font = "bold 24px Arial";
+      ctx.fillText(
+        Math.round(data.speed || 0).toString(),
+        20, 85
+      );
 
-    ctx.fillText(
-      "PITCH " + (data.pitch || 0).toFixed(1) + "°",
-      20, 455
-    );
+      ctx.fillText(
+        Math.round(data.altitude || 0).toString(),
+        405, 85
+      );
 
-    ctx.fillText(
-      "VS " + Math.round(data.verticalSpeed || 0),
-      350, 455
-    );
+      ctx.font = "bold 24px Arial";
 
-    ctx.fillText(
-      "BANK " + (data.roll || 0).toFixed(1) + "°",
-      180, 490
-    );
+      ctx.fillText(
+        "PITCH " + (data.pitch || 0).toFixed(1) + "°",
+        20, 455
+      );
+
+      ctx.fillText(
+        "VS " + Math.round(data.verticalSpeed || 0),
+        350, 455
+      );
+
+      ctx.fillText(
+        "BANK " + (data.roll || 0).toFixed(1) + "°",
+        180, 490
+      );
+    }
+
+    // ========================================
+    // NAVIGATION DISPLAY
+    // ========================================
+
+    else if (display.type === "ND") {
+
+      const heading = ((data.heading || 0) + 360) % 360;
+
+      ctx.fillStyle = "#06121c";
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Navigation display title
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 25px Arial";
+      ctx.fillText("NAV", 20, 35);
+
+      // Heading readout
+      ctx.fillStyle = "#00e5a0";
+      ctx.font = "bold 32px Arial";
+      ctx.fillText(
+        Math.round(heading).toString().padStart(3, "0") + "°",
+        390, 42
+      );
+
+      // Compass display
+      ctx.save();
+
+      ctx.beginPath();
+      ctx.arc(256, 275, 195, 0, Math.PI * 2);
+      ctx.clip();
+
+      // Background
+      ctx.fillStyle = "#071b29";
+      ctx.fillRect(0, 60, 512, 430);
+
+      // Compass rings
+      ctx.strokeStyle = "#246078";
+      ctx.lineWidth = 2;
+
+      for (const radius of [65, 130, 190]) {
+        ctx.beginPath();
+        ctx.arc(256, 275, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Rotating compass rose
+      ctx.save();
+      ctx.translate(256, 275);
+      ctx.rotate(-heading * Math.PI / 180);
+
+      // Compass tick marks
+      for (let i = 0; i < 72; i++) {
+        ctx.save();
+        ctx.rotate(i * Math.PI / 36);
+
+        ctx.strokeStyle = "#8ba5b5";
+        ctx.lineWidth = i % 3 === 0 ? 3 : 1.5;
+
+        ctx.beginPath();
+        ctx.moveTo(0, -175);
+        ctx.lineTo(0, i % 3 === 0 ? -190 : -183);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // Compass directions
+      const directions = [
+        { text: "N", angle: 0 },
+        { text: "E", angle: 90 },
+        { text: "S", angle: 180 },
+        { text: "W", angle: 270 }
+      ];
+
+      ctx.font = "bold 25px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      for (const direction of directions) {
+        const angle = direction.angle * Math.PI / 180;
+
+        const x = Math.sin(angle) * 145;
+        const y = -Math.cos(angle) * 145;
+
+        ctx.fillStyle =
+          direction.text === "N" ? "#ff5c5c" : "#ffffff";
+
+        ctx.fillText(direction.text, x, y);
+      }
+
+      ctx.restore();
+
+      // Aircraft position symbol
+      ctx.strokeStyle = "#ffd84a";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(256, 225);
+      ctx.lineTo(256, 300);
+      ctx.moveTo(220, 275);
+      ctx.lineTo(292, 275);
+      ctx.stroke();
+
+      // Heading marker
+      ctx.fillStyle = "#ffd84a";
+      ctx.beginPath();
+      ctx.moveTo(256, 65);
+      ctx.lineTo(246, 85);
+      ctx.lineTo(266, 85);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+
+      // Bottom information
+      ctx.fillStyle = "#00e5a0";
+      ctx.font = "bold 23px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("HDG " + Math.round(heading) + "°", 256, 500);
+
+      ctx.textAlign = "left";
+    }
 
     display.texture.needsUpdate = true;
   }
