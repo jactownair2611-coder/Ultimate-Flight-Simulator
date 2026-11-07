@@ -2188,11 +2188,16 @@ if (autopilot.enabled) {
   );
 }
   pitch = approach(pitch, pitchTarget, dt * 2.8);
+ if (keys["w"]) {
   console.log(
-  "Pitch:", THREE.MathUtils.radToDeg(pitch).toFixed(2),
-  "Target:", THREE.MathUtils.radToDeg(pitchTarget).toFixed(2),
-  "W:", keys["w"]
-);
+    "W HELD | Pitch:",
+    THREE.MathUtils.radToDeg(pitch).toFixed(2),
+    "| Target:",
+    THREE.MathUtils.radToDeg(pitchTarget).toFixed(2),
+    "| AoA:",
+    THREE.MathUtils.radToDeg(angleOfAttack).toFixed(2)
+  );
+}
   roll = approach(roll, rollTarget, dt * 2.4);
 
   // WEATHER WIND
