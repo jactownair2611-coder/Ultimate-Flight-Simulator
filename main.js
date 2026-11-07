@@ -2,6 +2,7 @@
 import * as THREE from "three";
 import { createA320 } from "./aircraft/a320.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+console.log("A320 LOADER TEST: main.js is running");
 
 // ============================================
 // ULTIMATE FLIGHT SIMULATOR
