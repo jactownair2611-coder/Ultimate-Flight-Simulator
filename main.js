@@ -2067,6 +2067,11 @@ function approach(current, target, amount) {
 // ============================================
 // AERODYNAMIC FLIGHT MODEL
 // ============================================
+// WEATHER FLIGHT PHYSICS
+const weatherAirVelocity = new THREE.Vector3();
+const weatherWindVelocity = new THREE.Vector3();
+
+let weatherTurbulenceClock = 0;
 
 function updateFlight(dt) {
   const pitchInput =
@@ -2105,6 +2110,23 @@ function updateFlight(dt) {
   pitch = approach(pitch, pitchTarget, dt * 2.8);
   roll = approach(roll, rollTarget, dt * 2.4);
 
+  // WEATHER WIND
+  weatherWindVelocity.set(0, 0, 0);
+
+  if (airborne) {
+    weatherWindVelocity.set(
+      weatherWindX,
+      0,
+      weatherWindZ
+    );
+  }
+
+  // AIR-RELATIVE VELOCITY
+  weatherAirVelocity.copy(velocity);
+  weatherAirVelocity.sub(weatherWindVelocity);
+
+  speed = weatherAirVelocity.length();
+
   // BANKED TURNING
   if (airborne && speed > 5) {
     yaw -= GRAVITY * Math.tan(roll) /
@@ -2127,10 +2149,10 @@ function updateFlight(dt) {
     .applyQuaternion(aircraft.quaternion)
     .normalize();
 
-  speed = velocity.length();
-
   // THRUST
-  const thrustAcceleration = (enginePower * MAX_THRUST) / MASS;
+  const thrustAcceleration =
+    (enginePower * MAX_THRUST) / MASS;
+
   acceleration.set(0, 0, 0);
   acceleration.addScaledVector(forward, thrustAcceleration);
 
@@ -2138,14 +2160,14 @@ function updateFlight(dt) {
   let flightPathAngle = 0;
 
   if (speed > 1) {
-  flightPathAngle = Math.atan2(
-    weatherAirVelocity.y,
-    Math.sqrt(
-      weatherAirVelocity.x ** 2 +
-      weatherAirVelocity.z ** 2
-    )
-  );
-}
+    flightPathAngle = Math.atan2(
+      weatherAirVelocity.y,
+      Math.sqrt(
+        weatherAirVelocity.x ** 2 +
+        weatherAirVelocity.z ** 2
+      )
+    );
+  }
 
   angleOfAttack = pitch - flightPathAngle;
 
@@ -2193,12 +2215,12 @@ function updateFlight(dt) {
 
     windDirection.copy(weatherAirVelocity).normalize();
 
-acceleration.addScaledVector(
-  windDirection,
-  -drag
-);
+    acceleration.addScaledVector(
+      windDirection,
+      -drag
+    );
 
-    // LIFT ALSO ACTS DURING THE TAKEOFF ROLL
+    // LIFT DIRECTION
     liftDirection.copy(aircraftUp);
 
     liftDirection.addScaledVector(
@@ -2211,6 +2233,89 @@ acceleration.addScaledVector(
       acceleration.addScaledVector(liftDirection, lift);
     }
   }
+
+  // WEATHER TURBULENCE
+  if (airborne && currentWeather >= 2) {
+    weatherTurbulenceClock += dt;
+
+    const turbulenceStrength =
+      currentWeather === 3 ? 2.0 : 0.55;
+
+    const turbulenceX =
+      Math.sin(weatherTurbulenceClock * 2.7) *
+      Math.sin(weatherTurbulenceClock * 0.8);
+
+    const turbulenceY =
+      Math.sin(weatherTurbulenceClock * 3.8) *
+      Math.cos(weatherTurbulenceClock * 1.2);
+
+    const turbulenceZ =
+      Math.cos(weatherTurbulenceClock * 2.1) *
+      Math.sin(weatherTurbulenceClock * 0.7);
+
+    acceleration.x += turbulenceX * turbulenceStrength;
+    acceleration.y += turbulenceY * turbulenceStrength;
+    acceleration.z += turbulenceZ * turbulenceStrength;
+  }
+
+  // WING FLEX RESPONSE
+  const loadFactor = Math.max(0, lift / GRAVITY);
+
+  const flexTarget =
+    (airborne || speed > 50)
+      ? THREE.MathUtils.clamp(
+          (loadFactor - 0.15) / 1.5,
+          0,
+          1
+        )
+      : 0;
+
+  wingFlexAmount = approach(
+    wingFlexAmount,
+    flexTarget,
+    dt * 0.8
+  );
+
+  // GRAVITY
+  if (airborne) {
+    acceleration.y -= GRAVITY;
+  } else {
+    acceleration.y = 0;
+    velocity.y = 0;
+  }
+
+  // UPDATE VELOCITY
+  velocity.addScaledVector(acceleration, dt);
+
+  // TAKEOFF TRANSITION
+  if (!airborne) {
+    aircraft.position.y = GROUND_Y;
+    velocity.y = 0;
+
+    if (
+      speed >= TAKEOFF_SPEED &&
+      pitch >= 0.08 &&
+      lift > GRAVITY
+    ) {
+      airborne = true;
+      console.log("A320 LIFTOFF!");
+    }
+  }
+
+  // UPDATE POSITION
+  aircraft.position.addScaledVector(velocity, dt);
+
+  // LANDING
+  if (airborne && aircraft.position.y <= GROUND_Y) {
+    aircraft.position.y = GROUND_Y;
+    velocity.y = 0;
+    airborne = false;
+    pitchTarget = 0;
+  }
+
+  speed = weatherAirVelocity.length();
+  verticalSpeed = velocity.y;
+}
 // ============================================
 // WEATHER TURBULENCE
 // ============================================
