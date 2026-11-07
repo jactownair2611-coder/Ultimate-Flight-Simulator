@@ -295,6 +295,7 @@ const windDirection = new THREE.Vector3();
 // CONTROLS
 // ============================================
 
+
 window.addEventListener("keydown", (event) => {
   keys[event.key.toLowerCase()] = true;
 
@@ -305,16 +306,15 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (event.key.toLowerCase() === "c") {
-  cockpitCamera = !cockpitCamera;
+    cockpitCamera = !cockpitCamera;
 
-  const cockpit = aircraft.getObjectByName("cockpit-interior");
+    const cockpit = aircraft.getObjectByName("cockpit-interior");
 
-if (cockpit) {
-  cockpit.visible = cockpitCamera;
-}
-
+    if (cockpit) {
+      cockpit.visible = cockpitCamera;
+    }
   }
-}
+
   if (event.key.toLowerCase() === "r") {
     resetAircraft();
   }
@@ -323,6 +323,7 @@ if (cockpit) {
 window.addEventListener("keyup", (event) => {
   keys[event.key.toLowerCase()] = false;
 });
+
 
 // ============================================
 // RESET
