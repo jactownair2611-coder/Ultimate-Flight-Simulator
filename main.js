@@ -1591,7 +1591,11 @@ let currentWeather = 0;
 
 let weatherWindX = 0;
 let weatherWindZ = 0;
+// Weather flight physics
+const weatherWindVector = new THREE.Vector3();
+const weatherAirVelocity = new THREE.Vector3();
 
+let weatherPhysicsTime = 0;
 // Rain particle system
 const rainCount = 1200;
 const rainPositions = new Float32Array(rainCount * 6);
@@ -2134,11 +2138,14 @@ function updateFlight(dt) {
   let flightPathAngle = 0;
 
   if (speed > 1) {
-    flightPathAngle = Math.atan2(
-      velocity.y,
-      Math.sqrt(velocity.x ** 2 + velocity.z ** 2)
-    );
-  }
+  flightPathAngle = Math.atan2(
+    weatherAirVelocity.y,
+    Math.sqrt(
+      weatherAirVelocity.x ** 2 +
+      weatherAirVelocity.z ** 2
+    )
+  );
+}
 
   angleOfAttack = pitch - flightPathAngle;
 
@@ -2184,8 +2191,12 @@ function updateFlight(dt) {
       WING_AREA *
       dragCoefficient / MASS;
 
-    windDirection.copy(velocity).normalize();
-    acceleration.addScaledVector(windDirection, -drag);
+    windDirection.copy(weatherAirVelocity).normalize();
+
+acceleration.addScaledVector(
+  windDirection,
+  -drag
+);
 
     // LIFT ALSO ACTS DURING THE TAKEOFF ROLL
     liftDirection.copy(aircraftUp);
@@ -2200,7 +2211,40 @@ function updateFlight(dt) {
       acceleration.addScaledVector(liftDirection, lift);
     }
   }
+// ============================================
+// WEATHER TURBULENCE
+// ============================================
 
+if (airborne && speed > 20) {
+  let turbulenceStrength = 0;
+
+  if (currentWeather === 1) {
+    turbulenceStrength = 0.15;
+  }
+
+  if (currentWeather === 2) {
+    turbulenceStrength = 0.8;
+  }
+
+  if (currentWeather === 3) {
+    turbulenceStrength = 2.0;
+  }
+
+  const turbulenceX =
+    Math.sin(weatherPhysicsTime * 3.1) * turbulenceStrength;
+
+  const turbulenceY =
+    Math.sin(weatherPhysicsTime * 5.3) *
+    turbulenceStrength * 0.65;
+
+  const turbulenceZ =
+    Math.cos(weatherPhysicsTime * 4.2) *
+    turbulenceStrength * 0.4;
+
+  acceleration.x += turbulenceX;
+  acceleration.y += turbulenceY;
+  acceleration.z += turbulenceZ;
+}
   // WING FLEX RESPONSE
   const loadFactor = Math.max(0, lift / GRAVITY);
 
@@ -2248,10 +2292,27 @@ function updateFlight(dt) {
     pitchTarget = 0;
   }
 
-  speed = velocity.length();
-  verticalSpeed = velocity.y;
-}
+  // Calculate aircraft speed relative to the moving air
+weatherPhysicsTime += dt;
 
+weatherWindVector.set(
+  weatherWindX,
+  0,
+  weatherWindZ
+);
+
+weatherAirVelocity
+  .copy(velocity)
+  .sub(weatherWindVector);
+
+weatherAirVelocity
+  .copy(velocity)
+  .sub(weatherWindVector);
+
+speed = weatherAirVelocity.length();
+
+verticalSpeed = velocity.y;
+}
 
 // ============================================
 // CAMERA
