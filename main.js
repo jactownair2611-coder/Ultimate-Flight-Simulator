@@ -656,7 +656,7 @@ wingFlexAmount = approach(
     velocity.y = 0;
 
     if (
-  speed > 60 &&
+  speed > 54 &&
   lift > GRAVITY * 0.75 &&
   pitch > 0.04
 ) {
