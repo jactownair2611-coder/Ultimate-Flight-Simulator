@@ -18,6 +18,19 @@ scene.fog = new THREE.Fog(0x87bce8, 1800, 9000);
 const airportGroup = new THREE.Group();
 airportGroup.name = "Main Airport";
 scene.add(airportGroup);
+// ============================================
+// AIRPORT REGISTRY
+// ============================================
+
+const airports = {
+  MAIN: {
+    name: "Main International Airport",
+    code: "MAIN",
+    group: airportGroup
+  }
+};
+
+let activeAirport = "MAIN";
 
 const camera = new THREE.PerspectiveCamera(
   70,
