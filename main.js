@@ -1058,6 +1058,305 @@ function updateClouds(dt) {
 
 console.log("VERSION 0.9.2 CLOUD SYSTEM LOADED");
 
+// ============================================
+// VERSION 0.9.3 - ROADS AND ROAD TRAFFIC
+// ============================================
+
+const roadGroup = new THREE.Group();
+const roadTrafficGroup = new THREE.Group();
+
+scene.add(roadGroup);
+scene.add(roadTrafficGroup);
+
+// Road materials
+const roadMaterial = new THREE.MeshStandardMaterial({
+  color: 0x303238,
+  roughness: 0.95
+});
+
+const roadLineMaterial = new THREE.MeshStandardMaterial({
+  color: 0xe8e3c9,
+  roughness: 1
+});
+
+// Road geometry
+const roadWidth = 16;
+const roadHeight = 0.35;
+
+const roadRoutes = [
+  [
+    [850, -1450],
+    [1750, -1450],
+    [1750, -350],
+    [850, -350]
+  ],
+  [
+    [-2900, -1200],
+    [-1900, -1200],
+    [-1900, -250],
+    [-2900, -250]
+  ],
+  [
+    [2100, 500],
+    [3200, 500],
+    [3200, 1500],
+    [2100, 1500]
+  ]
+];
+
+// Build roads between route points
+function createRoadSegment(x1, z1, x2, z2) {
+  const dx = x2 - x1;
+  const dz = z2 - z1;
+
+  const length = Math.sqrt(dx * dx + dz * dz);
+  const middleX = (x1 + x2) / 2;
+  const middleZ = (z1 + z2) / 2;
+
+  const road = new THREE.Mesh(
+    new THREE.BoxGeometry(
+      roadWidth,
+      roadHeight,
+      length
+    ),
+    roadMaterial
+  );
+
+  road.position.set(
+    middleX,
+    getTerrainHeight(middleX, middleZ) + roadHeight / 2,
+    middleZ
+  );
+
+  road.rotation.y = Math.atan2(dx, dz);
+  road.receiveShadow = true;
+
+  roadGroup.add(road);
+
+  // Dashed center markings
+  const dashCount = Math.floor(length / 35);
+
+  for (let i = 0; i < dashCount; i++) {
+    const t = (i + 0.5) / dashCount;
+
+    const dash = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.06, 12),
+      roadLineMaterial
+    );
+
+    const x = x1 + dx * t;
+    const z = z1 + dz * t;
+
+    dash.position.set(
+      x,
+      getTerrainHeight(x, z) + roadHeight + 0.04,
+      z
+    );
+
+    dash.rotation.y = Math.atan2(dx, dz);
+    roadGroup.add(dash);
+  }
+}
+
+// Prepare traffic routes
+const preparedRoadRoutes = [];
+
+for (const points of roadRoutes) {
+  const route = {
+    points: points,
+    lengths: [],
+    totalLength: 0
+  };
+
+  for (let i = 0; i < points.length; i++) {
+    const next = (i + 1) % points.length;
+
+    const dx = points[next][0] - points[i][0];
+    const dz = points[next][1] - points[i][1];
+
+    const length = Math.sqrt(dx * dx + dz * dz);
+
+    route.lengths.push(length);
+    route.totalLength += length;
+
+    createRoadSegment(
+      points[i][0],
+      points[i][1],
+      points[next][0],
+      points[next][1]
+    );
+  }
+
+  preparedRoadRoutes.push(route);
+}
+
+// ============================================
+// TRAFFIC VEHICLES
+// ============================================
+
+const trafficCars = [];
+
+const carColors = [
+  0xc52b2b,
+  0xeeeeee,
+  0x202a38,
+  0x315d9b,
+  0xd4bd72,
+  0x43835c
+];
+
+function createRoadCar(color) {
+  const car = new THREE.Group();
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: 0.65,
+    metalness: 0.15
+  });
+
+  const windowMaterial = new THREE.MeshStandardMaterial({
+    color: 0x263b4d,
+    roughness: 0.3,
+    metalness: 0.2
+  });
+
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(2.2, 0.8, 4.3),
+    bodyMaterial
+  );
+
+  body.position.y = 0.85;
+  car.add(body);
+
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.75, 2.1),
+    windowMaterial
+  );
+
+  cabin.position.set(0, 1.55, -0.15);
+  car.add(cabin);
+
+  const wheelGeometry = new THREE.CylinderGeometry(
+    0.48, 0.48, 0.32, 10
+  );
+
+  const wheelMaterial = new THREE.MeshStandardMaterial({
+    color: 0x151515,
+    roughness: 1
+  });
+
+  for (const x of [-1.12, 1.12]) {
+    for (const z of [-1.35, 1.35]) {
+      const wheel = new THREE.Mesh(
+        wheelGeometry,
+        wheelMaterial
+      );
+
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(x, 0.42, z);
+      car.add(wheel);
+    }
+  }
+
+  // Headlights
+  const headlightMaterial = new THREE.MeshBasicMaterial({
+    color: 0xfff4cf
+  });
+
+  for (const x of [-0.72, 0.72]) {
+    const light = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.2, 0.08),
+      headlightMaterial
+    );
+
+    light.position.set(x, 0.95, 2.17);
+    car.add(light);
+  }
+
+  car.traverse(object => {
+    if (object.isMesh) {
+      object.castShadow = false;
+      object.receiveShadow = false;
+    }
+  });
+
+  return car;
+}
+
+// Place cars around the road loops
+for (let r = 0; r < preparedRoadRoutes.length; r++) {
+  const route = preparedRoadRoutes[r];
+
+  for (let i = 0; i < 4; i++) {
+    const car = createRoadCar(
+      carColors[(r * 4 + i) % carColors.length]
+    );
+
+    roadTrafficGroup.add(car);
+
+    trafficCars.push({
+      mesh: car,
+      route: route,
+      distance: (route.totalLength / 4) * i,
+      speed: 12 + Math.random() * 7
+    });
+  }
+}
+
+// Find a position along a closed road route
+function getRoadRoutePosition(route, distance) {
+  let remaining = distance % route.totalLength;
+
+  for (let i = 0; i < route.points.length; i++) {
+    const next = (i + 1) % route.points.length;
+    const length = route.lengths[i];
+
+    if (remaining <= length) {
+      const t = remaining / length;
+
+      const x1 = route.points[i][0];
+      const z1 = route.points[i][1];
+
+      const x2 = route.points[next][0];
+      const z2 = route.points[next][1];
+
+      return {
+        x: THREE.MathUtils.lerp(x1, x2, t),
+        z: THREE.MathUtils.lerp(z1, z2, t),
+        angle: Math.atan2(x2 - x1, z2 - z1)
+      };
+    }
+
+    remaining -= length;
+  }
+
+  return null;
+}
+
+// Update road traffic
+function updateRoadTraffic(dt) {
+  for (const traffic of trafficCars) {
+    traffic.distance += traffic.speed * dt;
+
+    const position = getRoadRoutePosition(
+      traffic.route,
+      traffic.distance
+    );
+
+    if (!position) continue;
+
+    traffic.mesh.position.set(
+      position.x,
+      getTerrainHeight(position.x, position.z) + roadHeight,
+      position.z
+    );
+
+    traffic.mesh.rotation.y = position.angle;
+  }
+}
+
+console.log("VERSION 0.9.3 ROADS AND TRAFFIC LOADED");
+
 
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
@@ -1614,6 +1913,7 @@ function animate() {
 updateWingFlex(dt);
 updateGroundVehicles(dt);
 updateClouds(dt);
+updateRoadTraffic(dt);
 updateCamera();
 updateHUD();
 
