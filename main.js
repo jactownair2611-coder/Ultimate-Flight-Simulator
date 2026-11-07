@@ -124,6 +124,23 @@ model.traverse((object) => {
 });
 
 console.log("============================");
+    const geometry = model.children[0].geometry;
+const position = geometry.attributes.position;
+
+console.log("A320 GEOMETRY BOUNDS:");
+
+for (let axis = 0; axis < 3; axis++) {
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (let i = 0; i < position.count; i++) {
+    const value = position.getComponent(i, axis);
+    min = Math.min(min, value);
+    max = Math.max(max, value);
+  }
+
+  console.log(["X", "Y", "Z"][axis], min, max);
+}
 
     // Correct the aircraft's orientation
 model.rotation.y = Math.PI / 2;
