@@ -2373,6 +2373,13 @@ if (autopilot.enabled) {
   velocity.addScaledVector(acceleration, dt);
 
   // TAKEOFF TRANSITION
+  console.log(
+  "TAKEOFF CHECK",
+  "Speed:", (speed * 1.94384).toFixed(1),
+  "Pitch:", THREE.MathUtils.radToDeg(pitch).toFixed(1),
+  "Lift:", lift.toFixed(2),
+  "Airborne:", airborne
+);
   if (!airborne) {
     aircraft.position.y = GROUND_Y;
     velocity.y = 0;
