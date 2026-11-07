@@ -107,6 +107,8 @@ loader.load(
     aircraft.remove(fallbackAircraft);
 
     const model = gltf.scene;
+    // Correct the aircraft's orientation
+model.rotation.y = Math.PI / 2;
 
     // Measure and normalize the model
     const bounds = new THREE.Box3().setFromObject(model);
