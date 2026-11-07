@@ -416,7 +416,83 @@ cockpit.name = "cockpit-interior";
       side * 2.0, 1.75, -17.1
     );
   }
+// ============================================
+// VERSION 0.7 - COCKPIT INTERIOR DETAILS
+// ============================================
 
+// Cockpit floor
+cockpitBox(
+  4.0, 0.12, 5.8,
+  cockpitPanel,
+  0, -0.65, -13.5
+);
+
+// Left and right side consoles
+for (const side of [-1, 1]) {
+  cockpitBox(
+    0.35, 0.45, 3.2,
+    cockpitPanel,
+    side * 1.85, -0.15, -13.8
+  );
+
+  // Side console control surfaces
+  cockpitBox(
+    0.3, 0.04, 2.7,
+    grey,
+    side * 1.85, 0.09, -13.8
+  );
+}
+
+// Captain and first officer seats
+for (const side of [-1, 1]) {
+  const seat = new THREE.Group();
+  cockpit.add(seat);
+
+  // Seat base
+  cockpitBox(
+    0.85, 0.2, 0.85,
+    black,
+    side * 0.85, -0.35, -10.8
+  );
+
+  // Seat back
+  cockpitBox(
+    0.85, 1.2, 0.22,
+    black,
+    side * 0.85, 0.25, -10.35
+  );
+}
+
+// Captain's and first officer's sidesticks
+for (const side of [-1, 1]) {
+  cockpitBox(
+    0.13, 0.65, 0.13,
+    black,
+    side * 0.85, 0.05, -15.1
+  );
+
+  cockpitBox(
+    0.35, 0.12, 0.3,
+    grey,
+    side * 0.85, 0.38, -15.1
+  );
+}
+
+// Additional overhead panel
+cockpitBox(
+  3.2, 0.18, 1.1,
+  cockpitPanel,
+  0, 2.65, -14.8
+);
+
+// Overhead switches
+for (let x = -1.2; x <= 1.2; x += 0.4) {
+  cockpitBox(
+    0.12, 0.1, 0.12,
+    grey,
+    x, 2.53, -14.8
+  );
+}
   plane.scale.setScalar(0.8);
   return plane;
 }
