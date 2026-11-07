@@ -623,7 +623,6 @@ function animate() {
   updateWingFlex(dt);
   function updateCamera() {
   if (cockpitCamera) {
-    console.log("COCKPIT CAMERA ACTIVE");
     const cockpitPosition = new THREE.Vector3(0, 1.0, -9.0)
       .applyQuaternion(aircraft.quaternion)
       .add(aircraft.position);
