@@ -311,65 +311,101 @@ cockpit.name = "cockpit-interior";
   // Display builder
   function makeDisplay(x, y, width, height, type) {
 
-    // Display frame
-    cockpitBox(
-      width + 0.16,
-      height + 0.16,
-      0.12,
-      cockpitPanel,
-      x, y, -16.25
-    );
+  // Display frame
+  cockpitBox(
+    width + 0.16,
+    height + 0.16,
+    0.12,
+    cockpitPanel,
+    x, y, -16.25
+  );
 
-    // Screen face
-    addMesh(
-      new THREE.PlaneGeometry(width, height),
-      screenMaterial,
-      x, y, -16.18,
-      cockpit
-    );
+  // Create canvas for the display
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
 
-    // Horizontal display reference line
-    addMesh(
-      new THREE.BoxGeometry(width * 0.75, 0.018, 0.012),
-      screenWhite,
-      x, y - height * 0.27, -16.15,
-      cockpit
-    );
+  const ctx = canvas.getContext("2d");
 
-    // Colored flight information graphics
-    if (type === "PFD") {
+  // Create display texture
+  const texture = new THREE.CanvasTexture(canvas);
 
-      addMesh(
-        new THREE.BoxGeometry(width * 0.68, 0.018, 0.012),
-        screenBlue,
-        x, y + height * 0.12, -16.14,
-        cockpit
-      );
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide
+  });
 
-      addMesh(
-        new THREE.BoxGeometry(0.018, height * 0.55, 0.012),
-        screenGreen,
-        x, y, -16.14,
-        cockpit
-      );
+  const screen = new THREE.Mesh(
+    new THREE.PlaneGeometry(width, height),
+    material
+  );
 
-    } else {
+  screen.position.set(x, y, -16.18);
+  cockpit.add(screen);
 
-      addMesh(
-        new THREE.CircleGeometry(width * 0.25, 32),
-        screenBlue,
-        x, y, -16.14,
-        cockpit
-      );
+  // Save screen so we can update it later
+  cockpitDisplayScreens.push({
+    canvas,
+    ctx,
+    texture,
+    type
+  });
 
-      addMesh(
-        new THREE.BoxGeometry(width * 0.7, 0.018, 0.012),
-        screenGreen,
-        x, y, -16.13,
-        cockpit
-      );
-    }
+  // Initial screen background
+  ctx.fillStyle = "#071522";
+  ctx.fillRect(0, 0, 512, 512);
+
+  if (type === "PFD") {
+
+    // Artificial horizon
+    ctx.fillStyle = "#1684bd";
+    ctx.fillRect(0, 100, 512, 150);
+
+    ctx.fillStyle = "#8b542d";
+    ctx.fillRect(0, 250, 512, 150);
+
+    // Horizon line
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(0, 250);
+    ctx.lineTo(512, 250);
+    ctx.stroke();
+
+    // Aircraft reference symbol
+    ctx.strokeStyle = "#ffd84a";
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(175, 250);
+    ctx.lineTo(225, 250);
+    ctx.lineTo(256, 270);
+    ctx.lineTo(287, 250);
+    ctx.lineTo(337, 250);
+    ctx.stroke();
+
+    // Labels
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 27px Arial";
+    ctx.fillText("SPD", 20, 45);
+    ctx.fillText("ALT", 415, 45);
+    ctx.fillText("HDG", 220, 475);
+
+  } else {
+
+    // Basic navigation display background
+    ctx.strokeStyle = "#00c878";
+    ctx.lineWidth = 4;
+
+    ctx.beginPath();
+    ctx.arc(256, 256, 150, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 28px Arial";
+    ctx.fillText(type, 20, 45);
   }
+
+  texture.needsUpdate = true;
 
   // Captain's displays
   makeDisplay(-1.05, 0.35, 1.15, 0.8, "PFD");
