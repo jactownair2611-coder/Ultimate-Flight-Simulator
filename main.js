@@ -1613,11 +1613,9 @@ function animate() {
   updateFlight(dt);
 updateWingFlex(dt);
 updateGroundVehicles(dt);
-
-  // IMPORTANT: Update the camera every frame
-  updateCamera();
-
-  updateHUD();
+updateClouds(dt);
+updateCamera();
+updateHUD();
 
   renderer.render(scene, camera);
 }
