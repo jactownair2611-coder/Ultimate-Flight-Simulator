@@ -107,6 +107,24 @@ loader.load(
     aircraft.remove(fallbackAircraft);
 
     const model = gltf.scene;
+    
+console.log("===== A320 MODEL PARTS =====");
+
+model.traverse((object) => {
+  if (object.isMesh) {
+    console.log(
+      "Mesh:",
+      object.name || "(unnamed)",
+      "| Position:",
+      object.position,
+      "| Geometry vertices:",
+      object.geometry.attributes.position.count
+    );
+  }
+});
+
+console.log("============================");
+
     // Correct the aircraft's orientation
 model.rotation.y = Math.PI / 2;
 
