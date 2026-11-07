@@ -129,30 +129,44 @@ const position = geometry.attributes.position;
 
 
 
-console.log("===== A320 VERTEX SAMPLE =====");
+
+console.log("===== A320 WING DISTRIBUTION =====");
 
 model.traverse((object) => {
   if (!object.isMesh) return;
 
   const position = object.geometry.attributes.position;
+  const bins = 20;
+  const minX = -650;
+  const maxX = 650;
+  const counts = Array(bins).fill(0);
 
-  console.log("Mesh:", object.name);
-  console.log("Total vertices:", position.count);
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
 
-  const step = Math.max(1, Math.floor(position.count / 20));
+    const index = Math.floor(
+      ((x - minX) / (maxX - minX)) * bins
+    );
 
-  for (let i = 0; i < position.count; i += step) {
+    if (index >= 0 && index < bins) {
+      counts[index]++;
+    }
+  }
+
+  for (let i = 0; i < bins; i++) {
+    const left = minX + (i * (maxX - minX)) / bins;
+    const right = minX + ((i + 1) * (maxX - minX)) / bins;
+
     console.log(
-      "Vertex:",
-      i,
-      "X:", position.getX(i).toFixed(2),
-      "Y:", position.getY(i).toFixed(2),
-      "Z:", position.getZ(i).toFixed(2)
+      left.toFixed(0) + " to " + right.toFixed(0),
+      "vertices:",
+      counts[i]
     );
   }
 });
 
-console.log("==============================");
+console.log("=================================");
+
 
 
     // Correct the aircraft's orientation
