@@ -530,6 +530,4 @@ for (let x = -1.2; x <= 1.2; x += 0.4) {
   );
 }
   plane.scale.setScalar(0.8);
-  return plane;
-}
-
+  return plane;}
