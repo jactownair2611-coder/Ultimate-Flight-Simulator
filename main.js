@@ -812,6 +812,159 @@ for (let i = 0; i < 100; i++) {
 
 console.log("VERSION 0.9 WORLD SCENERY LOADED");
 
+ // ============================================
+ // VERSION 0.9.1 - PROCEDURAL TERRAIN
+ // ============================================
+
+const terrainGeometry = new THREE.BufferGeometry();
+
+const terrainSize = 10000;
+const terrainSegments = 200;
+
+const terrainVertices = [];
+const terrainColors = [];
+const terrainIndices = [];
+
+const terrainMaterial = new THREE.MeshStandardMaterial({
+  vertexColors: true,
+  roughness: 1,
+  metalness: 0
+});
+
+// Smooth transition function
+function terrainSmoothstep(a, b, value) {
+  const t = THREE.MathUtils.clamp(
+    (value - a) / (b - a),
+    0,
+    1
+  );
+
+  return t * t * (3 - 2 * t);
+}
+
+// Procedural terrain height
+function getTerrainHeight(x, z) {
+  // Keep the airport and nearby city area flat
+  const outsideX = Math.max(Math.abs(x) - 1900, 0);
+  const outsideZ = Math.max(
+    Math.max(-3000 - z, z - 1500),
+    0
+  );
+
+  const distanceFromAirport = Math.sqrt(
+    outsideX * outsideX +
+    outsideZ * outsideZ
+  );
+
+  const terrainBlend = terrainSmoothstep(
+    300,
+    1500,
+    distanceFromAirport
+  );
+
+  // Rolling hills
+  let height =
+    Math.sin(x * 0.0018) * 65 +
+    Math.cos(z * 0.0015) * 55 +
+    Math.sin((x + z) * 0.0022) * 35;
+
+  // Larger distant hills
+  const hills = [
+    [-3200, -1800, 150, 850],
+    [3000, -2500, 180, 1100],
+    [-3500, 2500, 130, 750],
+    [3500, 3000, 170, 900],
+    [0, 4300, 100, 1200]
+  ];
+
+  for (const hill of hills) {
+    const dx = x - hill[0];
+    const dz = z - hill[1];
+
+    const distanceSquared = dx * dx + dz * dz;
+
+    height += hill[2] * Math.exp(
+      -distanceSquared / (hill[3] * hill[3])
+    );
+  }
+
+  // Blend hills smoothly into the flat airport area
+  return Math.max(0, height * terrainBlend);
+}
+
+// ============================================
+// GENERATE TERRAIN GRID
+// ============================================
+
+for (let iz = 0; iz <= terrainSegments; iz++) {
+  for (let ix = 0; ix <= terrainSegments; ix++) {
+    const x =
+      (ix / terrainSegments - 0.5) * terrainSize;
+
+    const z =
+      (iz / terrainSegments - 0.5) * terrainSize;
+
+    const height = getTerrainHeight(x, z);
+
+    terrainVertices.push(x, height, z);
+
+    // Ground color varies with elevation
+    const color = new THREE.Color();
+
+    if (height < 35) {
+      color.setRGB(0.25, 0.43, 0.20);
+    } else if (height < 100) {
+      color.setRGB(0.30, 0.39, 0.20);
+    } else if (height < 220) {
+      color.setRGB(0.38, 0.37, 0.29);
+    } else {
+      color.setRGB(0.53, 0.52, 0.46);
+    }
+
+    terrainColors.push(color.r, color.g, color.b);
+  }
+}
+
+// ============================================
+// TERRAIN TRIANGLES
+// ============================================
+
+for (let iz = 0; iz < terrainSegments; iz++) {
+  for (let ix = 0; ix < terrainSegments; ix++) {
+    const a = iz * (terrainSegments + 1) + ix;
+    const b = a + 1;
+    const c = a + terrainSegments + 1;
+    const d = c + 1;
+
+    terrainIndices.push(a, c, b);
+    terrainIndices.push(b, c, d);
+  }
+}
+
+terrainGeometry.setAttribute(
+  "position",
+  new THREE.Float32BufferAttribute(terrainVertices, 3)
+);
+
+terrainGeometry.setAttribute(
+  "color",
+  new THREE.Float32BufferAttribute(terrainColors, 3)
+);
+
+terrainGeometry.setIndex(terrainIndices);
+terrainGeometry.computeVertexNormals();
+
+const terrain = new THREE.Mesh(
+  terrainGeometry,
+  terrainMaterial
+);
+
+terrain.receiveShadow = true;
+terrain.frustumCulled = true;
+scene.add(terrain);
+
+console.log("VERSION 0.9.1 TERRAIN LOADED");
+
 
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
