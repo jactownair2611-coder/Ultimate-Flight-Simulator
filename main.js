@@ -345,6 +345,7 @@ const GRAVITY = 9.81;
 const MAX_THRUST = 140000;
 
 let throttle = 0.35;
+let enginePower = 0.35;
 let speed = 0;
 let pitch = 0;
 let pitchTarget = 0;
@@ -404,7 +405,8 @@ function resetAircraft() {
   velocity.set(0, 0, 0);
 
   throttle = 0.35;
-  speed = 0;
+enginePower = 0.35;
+speed = 0;
 
   pitch = 0;
   pitchTarget = 0;
@@ -457,6 +459,14 @@ function updateFlight(dt) {
   }
 
   throttle = THREE.MathUtils.clamp(throttle, 0, 1);
+  // ENGINE SPOOL-UP
+const spoolRate = throttle > enginePower ? 0.45 : 0.65;
+
+enginePower = approach(
+  enginePower,
+  throttle,
+  dt * spoolRate
+);
 
   // CONTROL TARGETS
   pitchTarget += pitchInput * dt * 0.45;
@@ -506,8 +516,8 @@ function updateFlight(dt) {
   speed = velocity.length();
 
   // ENGINE THRUST
-  const thrustAcceleration =
-    (throttle * MAX_THRUST) / MASS;
+const thrustAcceleration =
+  (enginePower * MAX_THRUST) / MASS;
 
   acceleration.set(0, 0, 0);
   acceleration.addScaledVector(
@@ -646,12 +656,12 @@ wingFlexAmount = approach(
     velocity.y = 0;
 
     if (
-      speed > 75 &&
-      lift > GRAVITY &&
-      pitch > 0.04
-    ) {
-      airborne = true;
-    }
+  speed > 60 &&
+  lift > GRAVITY * 0.75 &&
+  pitch > 0.04
+) {
+  airborne = true;
+}
 
   } else {
 
