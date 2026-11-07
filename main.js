@@ -2485,7 +2485,7 @@ function updateHUD() {
     heading: `${Math.round(heading)}°`,
     vertical: `${Math.round(verticalSpeed * 196.85)} ft/min`,
     gear: " DOWN",
-    flaps: flaps ? " 
+    flaps: flaps ? ,
       }
     // Update A320 cockpit displays
   if (fallbackAircraft.userData.updateCockpitDisplays) {
