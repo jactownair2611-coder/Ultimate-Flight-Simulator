@@ -127,20 +127,30 @@ console.log("============================");
     const geometry = model.children[0].geometry;
 const position = geometry.attributes.position;
 
-console.log("A320 GEOMETRY BOUNDS:");
 
-for (let axis = 0; axis < 3; axis++) {
-  let min = Infinity;
-  let max = -Infinity;
+console.log("===== A320 FULL GEOMETRY DIAGNOSTIC =====");
 
-  for (let i = 0; i < position.count; i++) {
-    const value = position.getComponent(i, axis);
-    min = Math.min(min, value);
-    max = Math.max(max, value);
-  }
+model.updateMatrixWorld(true);
 
-  console.log(["X", "Y", "Z"][axis], min, max);
-}
+model.traverse((object) => {
+  if (!object.isMesh) return;
+
+  const geometry = object.geometry;
+  geometry.computeBoundingBox();
+
+  const bounds = geometry.boundingBox;
+
+  console.log("Mesh:", object.name);
+  console.log("Vertices:", geometry.attributes.position.count);
+  console.log("Local bounds:", bounds);
+
+  const worldBounds = new THREE.Box3().setFromObject(object);
+
+  console.log("World bounds:", worldBounds);
+});
+
+console.log("==========================================");
+
 
     // Correct the aircraft's orientation
 model.rotation.y = Math.PI / 2;
