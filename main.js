@@ -86,7 +86,132 @@ for (let x = -20; x <= 20; x += 5) {
 
 
 // Aircraft movement root — keeps the existing flight physics working
+
+// ============================================
+// VERSION 0.6 - DYNAMIC WING FLEX
+// ============================================
+
+let wingFlexMeshes = [];
+let wingFlexAmount = 0;
+let simulationTime = 0;
+
+function prepareWingFlex(root) {
+  wingFlexMeshes = [];
+
+  root.traverse((object) => {
+    if (!object.isMesh || !object.geometry.attributes.position) {
+      return;
+    }
+
+    // Work on a separate copy of the geometry
+    object.geometry = object.geometry.clone();
+
+    const geometry = object.geometry;
+    const position = geometry.attributes.position;
+
+    const originalPositions = new Float32Array(position.array);
+    const weights = new Float32Array(position.count);
+
+    let affectedVertices = 0;
+
+    for (let i = 0; i < position.count; i++) {
+      const x = position.getX(i);
+      const y = position.getY(i);
+      const z = position.getZ(i);
+
+      // Start with the outer wing regions.
+      // This conservative mask avoids most of the engine area.
+      const span = Math.abs(x);
+
+      const spanProgress = THREE.MathUtils.clamp(
+        (span - 380) / 240,
+        0,
+        1
+      );
+
+      // Smooth bending from wing root toward wingtip
+      const smoothWeight =
+        spanProgress * spanProgress *
+        (3 - 2 * spanProgress);
+
+      const inWingChord =
+        y > -260 && y < 50;
+
+      const inWingHeight =
+        z > -140 && z < 120;
+
+      const weight =
+        inWingChord && inWingHeight
+          ? smoothWeight
+          : 0;
+
+      weights[i] = weight;
+
+      if (weight > 0.01) {
+        affectedVertices++;
+      }
+    }
+
+    if (affectedVertices > 0) {
+      wingFlexMeshes.push({
+        geometry,
+        originalPositions,
+        weights
+      });
+
+      console.log(
+        "Wing flex prepared:",
+        affectedVertices,
+        "vertices"
+      );
+    }
+  });
+}
+
+// Animate the wing deformation
+function updateWingFlex(dt) {
+  simulationTime += dt;
+
+  for (const item of wingFlexMeshes) {
+    const position = item.geometry.attributes.position;
+
+    for (let i = 0; i < position.count; i++) {
+      const weight = item.weights[i];
+
+      if (weight === 0) continue;
+
+      const originalZ =
+        item.originalPositions[i * 3 + 2];
+
+      const originalX =
+        item.originalPositions[i * 3];
+
+      // Slightly different movement on each wing
+      const phase = originalX >= 0 ? 0 : Math.PI;
+
+      const flutter =
+        Math.sin(simulationTime * 2.1 + phase) * 0.7 +
+        Math.sin(simulationTime * 3.4 + phase) * 0.3;
+
+      const displacement =
+        wingFlexAmount * (24 + flutter);
+
+      // Negative local Z corresponds to upward movement
+      position.setZ(
+        i,
+        originalZ - displacement * weight
+      );
+    }
+
+    position.needsUpdate = true;
+
+    // Update lighting normals after deformation
+    item.geometry.computeVertexNormals();
+  }
+}
+
 const aircraft = new THREE.Group();
+
 
 // Keep the original aircraft as a fallback
 const fallbackAircraft = createA320(THREE);
@@ -190,6 +315,8 @@ model.rotation.y = Math.PI / 2;
       -center.z * scale
     );
 
+    // Prepare the loaded A320 for wing flex
+prepareWingFlex(model);
     aircraft.add(model);
   },
 
@@ -468,7 +595,23 @@ function updateFlight(dt) {
       }
     }
   }
+// WING FLEX RESPONSE TO SIMULATED AERODYNAMIC LOADING
+const loadFactor = Math.max(0, lift / GRAVITY);
 
+const flexTarget =
+  (airborne || speed > 50)
+    ? THREE.MathUtils.clamp(
+        (loadFactor - 0.15) / 1.5,
+        0,
+        1
+      )
+    : 0;
+
+wingFlexAmount = approach(
+  wingFlexAmount,
+  flexTarget,
+  dt * 0.8
+);
   // GRAVITY AND GROUND HANDLING
   if (airborne) {
 
@@ -616,10 +759,11 @@ function animate() {
   requestAnimationFrame(animate);
 
   const dt = Math.min(clock.getDelta(), 0.04);
-
-  updateFlight(dt);
-  updateCamera();
-  updateHUD();
+  
+updateFlight(dt);
+updateWingFlex(dt);
+updateCamera();
+updateHUD();
 
   renderer.render(scene, camera);
 }
