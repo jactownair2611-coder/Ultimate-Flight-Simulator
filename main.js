@@ -2168,7 +2168,7 @@ if (autopilot.enabled) {
 } else {
 
   // MANUAL FLIGHT CONTROLS
-  pitchTarget += pitchInput * dt * 1.2;
+  pitchTarget += pitchInput * dt * 2.0;
   rollTarget += rollInput * dt * 0.85;
 
   if (pitchInput === 0) {
@@ -2379,7 +2379,7 @@ if (autopilot.enabled) {
 
     if (
       speed >= TAKEOFF_SPEED &&
-      pitch >= 0.08 &&
+      pitch >= 0.02 &&
       lift > GRAVITY
     ) {
       airborne = true;
