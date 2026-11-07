@@ -2415,7 +2415,6 @@ weatherAirVelocity
 speed = weatherAirVelocity.length();
 
 verticalSpeed = velocity.y;
-}
 
 // ============================================
 // CAMERA
