@@ -209,6 +209,12 @@ for (const child of [...fallbackAircraft.children]) {
 }
 
 const model = gltf.scene;
+    // Hide cockpit when using external camera
+const cockpitInterior = fallbackAircraft.getObjectByName("cockpit-interior");
+
+if (cockpitInterior) {
+  cockpitInterior.visible = cockpitCamera;
+}
     model.rotation.y = Math.PI / 2;
 
     const bounds = new THREE.Box3().setFromObject(model);
@@ -297,7 +303,14 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (event.key.toLowerCase() === "c") {
-    cockpitCamera = !cockpitCamera;
+  cockpitCamera = !cockpitCamera;
+
+  const cockpitInterior = aircraft.getObjectByName("cockpit-interior");
+
+  if (cockpitInterior) {
+    cockpitInterior.visible = cockpitCamera;
+  }
+}
   }
 
   if (event.key.toLowerCase() === "r") {
