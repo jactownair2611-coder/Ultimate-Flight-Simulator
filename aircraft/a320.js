@@ -256,6 +256,7 @@ noseTip.name = "noseTip";
   // ============================================
 
   const cockpit = new THREE.Group();
+cockpit.name = "cockpit-interior";
   plane.add(cockpit);
 
   const cockpitPanel = new THREE.MeshStandardMaterial({
