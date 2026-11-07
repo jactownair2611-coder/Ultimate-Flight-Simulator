@@ -511,13 +511,12 @@ function updateFlight(dt) {
     if (
       speed >= TAKEOFF_SPEED &&
       pitch >= 0.08 &&
-      lift > GRAVITY
-    ) {
+      lift > GRAVITY)
+     {
       airborne = true;
       console.log("A320 LIFTOFF!");
     }
   }
-
   // UPDATE POSITION
   aircraft.position.addScaledVector(velocity, dt);
 
