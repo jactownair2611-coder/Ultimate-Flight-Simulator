@@ -314,7 +314,6 @@ window.addEventListener("keydown", (event) => {
       cockpit.visible = cockpitCamera;
     }
   }
-
   if (event.key.toLowerCase() === "r") {
     resetAircraft();
   }
