@@ -311,7 +311,6 @@ window.addEventListener("keydown", (event) => {
   cockpitCamera = !cockpitCamera;
 
   const cockpitInterior = aircraft.getObjectByName("cockpit-interior");
-
   if (cockpitInterior) {
     cockpitInterior.visible = cockpitCamera;
   }
