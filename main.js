@@ -965,6 +965,99 @@ scene.add(terrain);
 
 console.log("VERSION 0.9.1 TERRAIN LOADED");
 
+ // ============================================
+ // VERSION 0.9.2 - 3D CLOUD SYSTEM
+ // ============================================
+
+const cloudGroup = new THREE.Group();
+scene.add(cloudGroup);
+
+// Shared geometry and material keep cloud rendering efficient
+const cloudGeometry = new THREE.SphereGeometry(1, 14, 10);
+
+const cloudMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  roughness: 1,
+  metalness: 0,
+  transparent: true,
+  opacity: 0.82,
+  depthWrite: false
+});
+
+const cloudClusters = [];
+
+// Repeatable random number generator
+let cloudSeed = 92841;
+
+function cloudRandom() {
+  cloudSeed = (cloudSeed * 16807) % 2147483647;
+  return (cloudSeed - 1) / 2147483646;
+}
+
+// Create one cloud cluster
+function createCloud(x, y, z) {
+  const cloud = new THREE.Group();
+
+  const puffCount = 5 + Math.floor(cloudRandom() * 5);
+
+  for (let i = 0; i < puffCount; i++) {
+    const puff = new THREE.Mesh(
+      cloudGeometry,
+      cloudMaterial
+    );
+
+    const size = 35 + cloudRandom() * 55;
+
+    puff.scale.set(
+      size * (1.2 + cloudRandom() * 0.7),
+      size * (0.45 + cloudRandom() * 0.25),
+      size * (0.8 + cloudRandom() * 0.6)
+    );
+
+    puff.position.set(
+      (cloudRandom() - 0.5) * 150,
+      (cloudRandom() - 0.5) * 25,
+      (cloudRandom() - 0.5) * 100
+    );
+
+    puff.castShadow = false;
+    puff.receiveShadow = false;
+
+    cloud.add(puff);
+  }
+
+  cloud.position.set(x, y, z);
+
+  // Each cluster drifts at a slightly different speed
+  cloud.userData.speed = 2 + cloudRandom() * 5;
+
+  cloudClusters.push(cloud);
+  cloudGroup.add(cloud);
+}
+
+// Generate cloud formations around the world
+for (let i = 0; i < 42; i++) {
+  const x = (cloudRandom() - 0.5) * 8500;
+  const z = (cloudRandom() - 0.5) * 8500;
+  const y = 550 + cloudRandom() * 400;
+
+  createCloud(x, y, z);
+}
+
+// Slowly move clouds across the sky
+function updateClouds(dt) {
+  for (const cloud of cloudClusters) {
+    cloud.position.x += cloud.userData.speed * dt;
+
+    // Wrap clouds around the scenery
+    if (cloud.position.x > 4800) {
+      cloud.position.x = -4800;
+    }
+  }
+}
+
+console.log("VERSION 0.9.2 CLOUD SYSTEM LOADED");
+
 
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
