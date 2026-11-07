@@ -2373,19 +2373,30 @@ if (autopilot.enabled) {
   velocity.addScaledVector(acceleration, dt);
 
   // TAKEOFF TRANSITION
-  if (!airborne) {
-    aircraft.position.y = GROUND_Y;
-    velocity.y = 0;
+  // GROUND-TO-AIR TRANSITION
+if (!airborne) {
+  aircraft.position.y = GROUND_Y;
+  velocity.y = 0;
 
-    if (
-      speed >= TAKEOFF_SPEED &&
-      
-      lift > GRAVITY
-    ) {
-      airborne = true;
-      console.log("A320 LIFTOFF!");
-    }
+  const takeoffReady =
+    speed >= TAKEOFF_SPEED &&
+    pitch >= 0.04 &&
+    lift > GRAVITY;
+
+  if (takeoffReady) {
+    airborne = true;
+
+    // Give the aircraft an initial upward velocity.
+    velocity.y = Math.max(4.0, (lift - GRAVITY) * 0.5);
+
+    console.log("A320 LIFTOFF!", {
+      speed,
+      pitch,
+      lift,
+      verticalVelocity: velocity.y
+    });
   }
+}
 
   // UPDATE POSITION
   aircraft.position.addScaledVector(velocity, dt);
