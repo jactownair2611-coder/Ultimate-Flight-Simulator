@@ -255,6 +255,107 @@ function createAirport(config) {
     );
   }
 
+    // ============================================
+  // AIRPORT APRON
+  // ============================================
+
+  const apronWidth = config.apronWidth || 180;
+  const apronLength = config.apronLength || 260;
+
+  const apronX =
+    taxiwayOffset +
+    (config.taxiwayWidth || 20) / 2 +
+    apronWidth / 2 +
+    15;
+
+  addAirportBox(
+    apronWidth,
+    0.12,
+    apronLength,
+    apronMaterial,
+    apronX,
+    0.03,
+    0
+  );
+
+  // TAXIWAY CONNECTION TO APRON
+  addAirportBox(
+    15,
+    0.12,
+    22,
+    airportAsphalt,
+    taxiwayOffset +
+      (config.taxiwayWidth || 20) / 2 +
+      7.5,
+    0.03,
+    0
+  );
+
+  // ============================================
+  // TERMINAL BUILDING
+  // ============================================
+
+  const terminalX = apronX + apronWidth / 2 + 125;
+
+  addAirportBox(
+    180,
+    18,
+    50,
+    terminalMaterial,
+    terminalX,
+    9,
+    0
+  );
+
+  // TERMINAL WINDOWS
+  addAirportBox(
+    0.5,
+    7,
+    40,
+    glassMaterial,
+    terminalX - 25,
+    11,
+    0
+  );
+
+  // TERMINAL ROOF
+  addAirportBox(
+    185,
+    1,
+    55,
+    airportWhite,
+    terminalX,
+    18.5,
+    0
+  );
+
+  // ============================================
+  // JET BRIDGES
+  // ============================================
+
+  for (const z of [-65, 65]) {
+
+    addAirportBox(
+      90,
+      4,
+      8,
+      terminalMaterial,
+      terminalX - 115,
+      6,
+      z
+    );
+
+    // GATE CONNECTOR
+    addAirportBox(
+      12,
+      5,
+      12,
+      glassMaterial,
+      terminalX - 65,
+      8,
+      z
+    );
+  }
   scene.add(airport);
 
   return airport;
