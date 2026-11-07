@@ -452,6 +452,142 @@ airportSign("GATE 5", 270, 3, -1050);
 
 console.log("VERSION 0.8.1 AIRPORT LIGHTING LOADED");
 
+// ============================================
+// VERSION 0.8.2 - ANIMATED GROUND TRAFFIC
+// ============================================
+
+const vehicleMaterials = {
+  yellow: new THREE.MeshStandardMaterial({ color: 0xf2bd25 }),
+  white: new THREE.MeshStandardMaterial({ color: 0xe8e8e8 }),
+  blue: new THREE.MeshStandardMaterial({ color: 0x1766a5 }),
+  red: new THREE.MeshStandardMaterial({ color: 0xc83232 }),
+  black: new THREE.MeshStandardMaterial({ color: 0x202326 }),
+  glass: new THREE.MeshStandardMaterial({
+    color: 0x72a8c4,
+    metalness: 0.3,
+    roughness: 0.25
+  }),
+  rubber: new THREE.MeshStandardMaterial({ color: 0x111111 })
+};
+
+const groundVehicles = [];
+
+function vehicleBox(parent, width, height, length, material, x, y, z) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(width, height, length),
+    material
+  );
+
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+
+  return mesh;
+}
+
+function vehicleWheels(parent, width, length) {
+  for (const x of [-width / 2, width / 2]) {
+    for (const z of [-length / 2, length / 2]) {
+      const wheel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.35, 0.35, 0.22, 12),
+        vehicleMaterials.rubber
+      );
+
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(x, 0.35, z);
+      parent.add(wheel);
+    }
+  }
+}
+
+function createGroundVehicle(type, x, z, speed) {
+  const group = new THREE.Group();
+
+  if (type === "baggage") {
+    vehicleBox(group, 2.2, 1.1, 3.2,
+      vehicleMaterials.yellow, 0, 0.9, 0);
+
+    vehicleBox(group, 1.8, 0.9, 2,
+      vehicleMaterials.black, 0, 1.9, -0.4);
+
+    vehicleWheels(group, 2.4, 2.6);
+
+    // Luggage trailer
+    vehicleBox(group, 2.5, 0.7, 3,
+      vehicleMaterials.black, 0, 0.85, 4.5);
+
+    vehicleBox(group, 2.2, 0.7, 2.5,
+      vehicleMaterials.yellow, 0, 1.55, 4.5);
+
+  } else if (type === "fuel") {
+    vehicleBox(group, 3, 1.5, 6,
+      vehicleMaterials.white, 0, 1.1, 0);
+
+    vehicleBox(group, 2.5, 1.6, 3.8,
+      vehicleMaterials.yellow, 0, 2.5, -0.5);
+
+    vehicleBox(group, 2.8, 1.1, 2.2,
+      vehicleMaterials.white, 0, 2.8, 1.9);
+
+    vehicleWheels(group, 3.2, 4.8);
+
+  } else if (type === "bus") {
+    vehicleBox(group, 3, 2.6, 9,
+      vehicleMaterials.blue, 0, 1.8, 0);
+
+    vehicleBox(group, 2.8, 1.1, 7.8,
+      vehicleMaterials.glass, 0, 3.2, -0.2);
+
+    vehicleWheels(group, 3.2, 7);
+
+  } else if (type === "pushback") {
+    vehicleBox(group, 2.8, 1.1, 3.8,
+      vehicleMaterials.yellow, 0, 0.9, 0);
+
+    vehicleBox(group, 2.2, 0.8, 1.8,
+      vehicleMaterials.red, 0, 1.8, -0.3);
+
+    vehicleWheels(group, 3, 3);
+  }
+
+  group.position.set(x, 0, z);
+  scene.add(group);
+
+  groundVehicles.push({
+    group,
+    speed,
+    startZ: -580,
+    endZ: -1120
+  });
+}
+
+// Create airport traffic
+createGroundVehicle("baggage", 125, -620, -5);
+createGroundVehicle("fuel", 165, -1080, 3.5);
+createGroundVehicle("bus", 300, -680, -4);
+createGroundVehicle("pushback", 320, -1040, 2.5);
+
+// ============================================
+// UPDATE GROUND VEHICLES
+// ============================================
+
+function updateGroundVehicles(dt) {
+  for (const vehicle of groundVehicles) {
+    vehicle.group.position.z += vehicle.speed * dt;
+
+    if (vehicle.group.position.z < vehicle.endZ) {
+      vehicle.group.position.z = vehicle.startZ;
+    }
+
+    if (vehicle.group.position.z > vehicle.startZ) {
+      vehicle.group.position.z = vehicle.endZ;
+    }
+  }
+}
+
+console.log("VERSION 0.8.2 GROUND TRAFFIC LOADED");
+
 
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
@@ -1005,7 +1141,8 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.04);
 
   updateFlight(dt);
-  updateWingFlex(dt);
+updateWingFlex(dt);
+updateGroundVehicles(dt);
 
   // IMPORTANT: Update the camera every frame
   updateCamera();
