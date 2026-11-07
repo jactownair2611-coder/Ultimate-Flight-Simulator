@@ -621,7 +621,30 @@ function animate() {
 
   updateFlight(dt);
   updateWingFlex(dt);
-  updateCamera();
+  function updateCamera() {
+  if (cockpitCamera) {
+    const cockpitPosition = new THREE.Vector3(0, 1.0, -9.0)
+      .applyQuaternion(aircraft.quaternion)
+      .add(aircraft.position);
+
+    const cockpitLook = new THREE.Vector3(0, 0.6, -20)
+      .applyQuaternion(aircraft.quaternion)
+      .add(aircraft.position);
+
+    camera.position.copy(cockpitPosition);
+    camera.lookAt(cockpitLook);
+  } else {
+    const offset = chaseOffset.clone()
+      .applyQuaternion(aircraft.quaternion);
+
+    camera.position.copy(aircraft.position).add(offset);
+
+    cameraTarget.copy(aircraft.position);
+    cameraTarget.y += 2;
+
+    camera.lookAt(cameraTarget);
+  }
+}
   updateHUD();
 
   renderer.render(scene, camera);
