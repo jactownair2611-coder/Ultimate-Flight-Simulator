@@ -11,6 +11,13 @@ console.log("ULTIMATE FLIGHT SIMULATOR - VERSION 0.6.2");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87bce8);
 scene.fog = new THREE.Fog(0x87bce8, 1800, 9000);
+// ============================================
+// AIRPORT GROUP SYSTEM
+// ============================================
+
+const airportGroup = new THREE.Group();
+airportGroup.name = "Main Airport";
+scene.add(airportGroup);
 
 const camera = new THREE.PerspectiveCamera(
   70,
@@ -61,7 +68,7 @@ const runway = new THREE.Mesh(
 
 runway.position.set(0, 0, -850);
 runway.receiveShadow = true;
-scene.add(runway);
+airportGroup.add(runway);
 
 function runwayLine(x, z, width, length) {
   const line = new THREE.Mesh(
@@ -70,7 +77,7 @@ function runwayLine(x, z, width, length) {
   );
 
   line.position.set(x, 0.16, z);
-  scene.add(line);
+  airportGroup.add(line);
 }
 
 runwayLine(0, -850, 0.8, 2100);
@@ -132,7 +139,7 @@ function airportBox(width, height, length, material, x, y, z) {
   mesh.position.set(x, y, z);
   mesh.receiveShadow = true;
   mesh.castShadow = true;
-  scene.add(mesh);
+  airportGroup.add(mesh);
 
   return mesh;
 }
@@ -2503,7 +2510,8 @@ function updateHUD() {
       altitude: aircraft.position.y * 3.28084,
       pitch: THREE.MathUtils.radToDeg(pitch),
       roll: THREE.MathUtils.radToDeg(roll),
-      verticalSpeed: verticalSpeed * 196.85
+      verticalSpeed: verticalSpeed * 196.85,
+heading: heading
     });
   }
 }
