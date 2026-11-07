@@ -2168,12 +2168,17 @@ if (autopilot.enabled) {
 } else {
 
   // MANUAL FLIGHT CONTROLS
-  pitchTarget += pitchInput * dt * 1.2;
+  pitchTarget += pitchInput * dt * 2.0;
   rollTarget += rollInput * dt * 0.85;
 
-  if (pitchInput === 0) {
-    pitchTarget = approach(pitchTarget, 0, dt * 0.08);
-  }
+  if (pitchInput === 0 && !airborne) {
+  // Preserve rotation input while on the runway
+  pitchTarget = approach(pitchTarget, 0, dt * 0.005);
+}
+
+if (pitchInput === 0 && airborne) {
+  pitchTarget = approach(pitchTarget, 0, dt * 0.08);
+}
 
   if (rollInput === 0) {
     rollTarget = approach(rollTarget, 0, dt * 0.22);
