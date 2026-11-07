@@ -530,6 +530,98 @@ for (let x = -1.2; x <= 1.2; x += 0.4) {
     x, 2.53, -14.8
   );
 }
+  // ============================================
+// LIVE COCKPIT DISPLAY SYSTEM
+// ============================================
+
+plane.userData.updateCockpitDisplays = function(data) {
+
+  for (const display of cockpitDisplayScreens) {
+
+    if (display.type !== "PFD") continue;
+
+    const ctx = display.ctx;
+
+    // Clear screen
+    ctx.fillStyle = "#071522";
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Artificial horizon
+    const pitchOffset = Math.max(
+      -100,
+      Math.min(100, data.pitch * 8)
+    );
+
+    ctx.save();
+
+    ctx.translate(256, 250);
+    ctx.rotate(-(data.roll || 0) * Math.PI / 180);
+
+    ctx.fillStyle = "#1684bd";
+    ctx.fillRect(-350, -350 + pitchOffset, 700, 350);
+
+    ctx.fillStyle = "#8b542d";
+    ctx.fillRect(-350, pitchOffset, 700, 350);
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-350, pitchOffset);
+    ctx.lineTo(350, pitchOffset);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // Aircraft reference symbol
+    ctx.strokeStyle = "#ffd84a";
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(175, 250);
+    ctx.lineTo(225, 250);
+    ctx.lineTo(256, 270);
+    ctx.lineTo(287, 250);
+    ctx.lineTo(337, 250);
+    ctx.stroke();
+
+    // Flight information
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 27px Arial";
+
+    ctx.fillText("SPD", 20, 40);
+    ctx.fillText("ALT", 405, 40);
+
+    ctx.font = "bold 36px Arial";
+
+    ctx.fillText(
+      Math.round(data.speed || 0).toString(),
+      20, 85
+    );
+
+    ctx.fillText(
+      Math.round(data.altitude || 0).toString(),
+      405, 85
+    );
+
+    ctx.font = "bold 24px Arial";
+
+    ctx.fillText(
+      "PITCH " + (data.pitch || 0).toFixed(1) + "°",
+      20, 455
+    );
+
+    ctx.fillText(
+      "VS " + Math.round(data.verticalSpeed || 0),
+      350, 455
+    );
+
+    ctx.fillText(
+      "BANK " + (data.roll || 0).toFixed(1) + "°",
+      180, 490
+    );
+
+    display.texture.needsUpdate = true;
+  }
+};
   plane.scale.setScalar(0.8);
   return plane;
   }
