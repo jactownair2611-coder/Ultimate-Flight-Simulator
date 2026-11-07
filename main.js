@@ -597,10 +597,11 @@ const thrustAcceleration =
     if (liftDirection.lengthSq() > 0.001) {
       liftDirection.normalize();
 
-      if (airborne) {
-        acceleration.addScaledVector(
-          liftDirection,
-          lift
+     // LIFT DURING TAKEOFF AND FLIGHT
+acceleration.addScaledVector(
+  liftDirection,
+  lift
+);
         );
       }
     }
@@ -649,39 +650,36 @@ wingFlexAmount = approach(
   // UPDATE AIRCRAFT POSITION
   aircraft.position.addScaledVector(velocity, dt);
 
-  // TAKEOFF
-  // TAKEOFF
+
+ // TAKEOFF
 if (!airborne) {
 
   aircraft.position.y = GROUND_Y;
-  velocity.y = 0;
 
-  const takeoffSpeed = 54; // approximately 105 knots
+  if (speed < 54) {
+    velocity.y = 0;
+  }
 
   if (
-    speed >= takeoffSpeed &&
-    pitch >= 0.04 &&
-    lift > 0
+    speed >= 54 &&
+    pitch > 0.04 &&
+    lift > GRAVITY
   ) {
     airborne = true;
-    console.log("A320 TAKEOFF!");
+    console.log("A320 LIFTOFF!");
   }
 
 } else {
 
-    // LANDING
-    if (aircraft.position.y <= GROUND_Y) {
+  // LANDING
+  if (aircraft.position.y <= GROUND_Y) {
 
-      aircraft.position.y = GROUND_Y;
-      velocity.y = 0;
+    aircraft.position.y = GROUND_Y;
+    velocity.y = 0;
 
-      airborne = false;
-      pitchTarget = 0;
-    }
+    airborne = false;
+    pitchTarget = 0;
   }
-
-  speed = velocity.length();
-  verticalSpeed = velocity.y;
 }
 
 // ============================================
