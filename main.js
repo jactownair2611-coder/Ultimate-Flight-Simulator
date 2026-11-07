@@ -200,9 +200,15 @@ loader.load(
   (gltf) => {
     console.log("A320 3D model loaded successfully!");
 
-    aircraft.remove(fallbackAircraft);
+// Remove the backup aircraft exterior,
+// but KEEP its cockpit interior.
+for (const child of [...fallbackAircraft.children]) {
+  if (child.name !== "cockpit-interior") {
+    fallbackAircraft.remove(child);
+  }
+}
 
-    const model = gltf.scene;
+const model = gltf.scene;
     model.rotation.y = Math.PI / 2;
 
     const bounds = new THREE.Box3().setFromObject(model);
