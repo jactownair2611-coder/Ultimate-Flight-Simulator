@@ -2424,21 +2424,23 @@ if (!airborne) {
 const chaseOffset = new THREE.Vector3(0, 12, 35);
 const cameraTarget = new THREE.Vector3();
 
+
 function updateCamera() {
   if (cockpitCamera) {
     const cockpit = aircraft.getObjectByName("cockpit-interior");
 
     if (cockpit) {
+      cockpit.visible = true;
       aircraft.updateMatrixWorld(true);
 
-      // Pilot eye position, relative to the cockpit
+      // Captain's eye position
       const eyePosition = cockpit.localToWorld(
-        new THREE.Vector3(0, 0.9, -11.6)
+        new THREE.Vector3(-0.85, 1.25, -11.8)
       );
 
-      // Look forward through the windshield
+      // View direction through the windshield
       const lookPosition = cockpit.localToWorld(
-        new THREE.Vector3(0, 0.7, -40)
+        new THREE.Vector3(-0.85, 1.1, -35)
       );
 
       camera.position.copy(eyePosition);
@@ -2465,6 +2467,7 @@ function updateCamera() {
 
   camera.lookAt(cameraTarget);
 }
+
 
 // ============================================
 // HUD
