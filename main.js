@@ -88,6 +88,221 @@ for (let x = -20; x <= 20; x += 5) {
 }
 
 // ============================================
+// VERSION 0.8 - AIRPORT ENVIRONMENT
+// ============================================
+
+const airportAsphalt = new THREE.MeshStandardMaterial({
+  color: 0x34383d,
+  roughness: 0.92
+});
+
+const apronMaterial = new THREE.MeshStandardMaterial({
+  color: 0x55585c,
+  roughness: 0.9
+});
+
+const taxiYellow = new THREE.MeshStandardMaterial({
+  color: 0xf5c928,
+  roughness: 0.8
+});
+
+const airportWhite = new THREE.MeshStandardMaterial({
+  color: 0xf5f5f0,
+  roughness: 0.8
+});
+
+const terminalMaterial = new THREE.MeshStandardMaterial({
+  color: 0xc6cbd0,
+  roughness: 0.85
+});
+
+const glassMaterial = new THREE.MeshStandardMaterial({
+  color: 0x477d9c,
+  metalness: 0.35,
+  roughness: 0.25
+});
+
+// Airport object helper
+function airportBox(width, height, length, material, x, y, z) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(width, height, length),
+    material
+  );
+
+  mesh.position.set(x, y, z);
+  mesh.receiveShadow = true;
+  mesh.castShadow = true;
+  scene.add(mesh);
+
+  return mesh;
+}
+
+// ============================================
+// PARALLEL TAXIWAY
+// ============================================
+
+airportBox(
+  24, 0.12, 2000,
+  airportAsphalt,
+  75, 0.02, -850
+);
+
+// Taxiway centerline
+for (let z = 120; z > -1820; z -= 35) {
+  airportBox(
+    0.35, 0.04, 16,
+    taxiYellow,
+    75, 0.11, z
+  );
+}
+
+// Taxiway edge markings
+for (const x of [63, 87]) {
+  airportBox(
+    0.35, 0.04, 2000,
+    airportWhite,
+    x, 0.11, -850
+  );
+}
+
+// ============================================
+// RUNWAY CONNECTORS
+// ============================================
+
+for (const z of [-300, -1400]) {
+  airportBox(
+    85, 0.12, 22,
+    airportAsphalt,
+    45, 0.02, z
+  );
+
+  airportBox(
+    0.35, 0.04, 22,
+    taxiYellow,
+    45, 0.11, z
+  );
+}
+
+// ============================================
+// AIRCRAFT APRON
+// ============================================
+
+airportBox(
+  270, 0.14, 540,
+  apronMaterial,
+  220, 0.025, -850
+);
+
+// Apron boundary markings
+for (const z of [-580, -1120]) {
+  airportBox(
+    270, 0.04, 0.5,
+    airportWhite,
+    220, 0.12, z
+  );
+}
+
+// ============================================
+// AIRCRAFT PARKING STANDS
+// ============================================
+
+const gatePositions = [-630, -735, -840, -945, -1050];
+
+for (let i = 0; i < gatePositions.length; i++) {
+  const z = gatePositions[i];
+
+  // Stand centerline
+  airportBox(
+    0.4, 0.04, 95,
+    taxiYellow,
+    225, 0.13, z
+  );
+
+  // Parking stop line
+  airportBox(
+    45, 0.04, 0.5,
+    airportWhite,
+    225, 0.13, z - 38
+  );
+
+  // Stand number marker
+  airportBox(
+    1.2, 0.04, 1.2,
+    airportWhite,
+    205, 0.13, z + 45
+  );
+}
+
+// ============================================
+// TERMINAL BUILDING
+// ============================================
+
+airportBox(
+  130, 28, 560,
+  terminalMaterial,
+  435, 14, -850
+);
+
+// Glass terminal facade
+airportBox(
+  1.5, 13, 500,
+  glassMaterial,
+  369, 19, -850
+);
+
+// Terminal roof
+airportBox(
+  145, 3, 575,
+  terminalMaterial,
+  435, 29.5, -850
+);
+
+// ============================================
+// JET BRIDGES
+// ============================================
+
+for (const z of gatePositions) {
+  airportBox(
+    35, 5, 9,
+    terminalMaterial,
+    350, 12, z
+  );
+
+  airportBox(
+    3, 8, 11,
+    glassMaterial,
+    333, 8, z
+  );
+}
+
+// ============================================
+// AIRPORT CONTROL TOWER
+// ============================================
+
+// Tower base
+airportBox(
+  22, 45, 22,
+  terminalMaterial,
+  535, 22.5, -520
+);
+
+// Tower windows
+airportBox(
+  27, 7, 27,
+  glassMaterial,
+  535, 47, -520
+);
+
+// Tower roof
+airportBox(
+  30, 3, 30,
+  terminalMaterial,
+  535, 52, -520
+);
+
+console.log("VERSION 0.8 AIRPORT ENVIRONMENT LOADED");
+
+// ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
 // ============================================
 
