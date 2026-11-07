@@ -1,6 +1,7 @@
 
 import * as THREE from "three";
 import { createA320 } from "./aircraft/a320.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 // ============================================
 // ULTIMATE FLIGHT SIMULATOR
@@ -82,8 +83,59 @@ for (let x = -20; x <= 20; x += 5) {
 // AIRBUS A320-200
 // ============================================
 
-const aircraft = createA320(THREE);
+
+// Aircraft movement root — keeps the existing flight physics working
+const aircraft = new THREE.Group();
+
+// Keep the original aircraft as a fallback
+const fallbackAircraft = createA320(THREE);
+aircraft.add(fallbackAircraft);
+
 scene.add(aircraft);
+
+// Load the detailed A320 model
+const loader = new GLTFLoader();
+
+loader.load(
+  "./aircraft/models/A320_nologo.glb",
+
+  (gltf) => {
+    console.log("A320 3D model loaded successfully!");
+
+    // Remove the simple backup model
+    aircraft.remove(fallbackAircraft);
+
+    const model = gltf.scene;
+
+    // Measure and normalize the model
+    const bounds = new THREE.Box3().setFromObject(model);
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+
+    const longestDimension = Math.max(size.x, size.y, size.z);
+    const targetLength = 23.2;
+    const scale = targetLength / longestDimension;
+
+    model.scale.setScalar(scale);
+
+    // Center the model around the aircraft movement root
+    model.position.set(
+      -center.x * scale,
+      -center.y * scale,
+      -center.z * scale
+    );
+
+    aircraft.add(model);
+  },
+
+  undefined,
+
+  (error) => {
+    console.error("Could not load A320 model:", error);
+    console.log("Using the original backup aircraft instead.");
+  }
+);
+
 
 // Approximate wheel contact height for this model
 const GROUND_Y = 3.1;
