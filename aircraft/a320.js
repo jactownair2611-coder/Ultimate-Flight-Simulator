@@ -309,6 +309,7 @@ cockpit.name = "cockpit-interior";
   );
 
   // Display builder
+  const cockpitDisplayScreens = [];
   function makeDisplay(x, y, width, height, type) {
 
   // Display frame
@@ -406,7 +407,7 @@ cockpit.name = "cockpit-interior";
   }
 
   texture.needsUpdate = true;
-
+  }
   // Captain's displays
   makeDisplay(-1.05, 0.35, 1.15, 0.8, "PFD");
   makeDisplay(0.15, 0.35, 1.15, 0.8, "ND");
