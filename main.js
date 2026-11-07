@@ -2117,7 +2117,6 @@ function approach(current, target, amount) {
 const weatherWindVelocity = new THREE.Vector3();
 let weatherTurbulenceClock = 0;
 
-import * as THREE from "three";
 import { createA320 } from "./aircraft/a320.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
