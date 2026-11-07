@@ -588,6 +588,230 @@ function updateGroundVehicles(dt) {
 
 console.log("VERSION 0.8.2 GROUND TRAFFIC LOADED");
 
+ // ============================================
+ // VERSION 0.9 - WORLD SCENERY
+ // ============================================
+
+const sceneryMaterials = {
+  mountain: new THREE.MeshStandardMaterial({
+    color: 0x68766c,
+    roughness: 1
+  }),
+  mountainSnow: new THREE.MeshStandardMaterial({
+    color: 0xcbd3d5,
+    roughness: 1
+  }),
+  city: new THREE.MeshStandardMaterial({
+    color: 0x777e85,
+    roughness: 0.9
+  }),
+  cityDark: new THREE.MeshStandardMaterial({
+    color: 0x555d65,
+    roughness: 0.9
+  }),
+  glass: new THREE.MeshStandardMaterial({
+    color: 0x527d99,
+    metalness: 0.25,
+    roughness: 0.3
+  }),
+  tree: new THREE.MeshStandardMaterial({
+    color: 0x315b35,
+    roughness: 1
+  }),
+  trunk: new THREE.MeshStandardMaterial({
+    color: 0x59432d
+  })
+};
+
+// ============================================
+// SCENERY BUILDING HELPER
+// ============================================
+
+function sceneryBox(width, height, depth, material, x, y, z) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(width, height, depth),
+    material
+  );
+
+  mesh.position.set(x, y + height / 2, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+
+  return mesh;
+}
+
+// ============================================
+// DISTANT MOUNTAINS
+// ============================================
+
+function createMountain(x, z, radius, height) {
+  const mountain = new THREE.Mesh(
+    new THREE.ConeGeometry(radius, height, 8),
+    sceneryMaterials.mountain
+  );
+
+  mountain.position.set(x, height / 2 - 5, z);
+  mountain.rotation.y = Math.random() * Math.PI;
+  mountain.castShadow = true;
+  mountain.receiveShadow = true;
+  scene.add(mountain);
+
+  // Snow cap
+  if (height > 300) {
+    const snow = new THREE.Mesh(
+      new THREE.ConeGeometry(radius * 0.23, height * 0.25, 8),
+      sceneryMaterials.mountainSnow
+    );
+
+    snow.position.set(
+      x,
+      height * 0.84,
+      z
+    );
+
+    scene.add(snow);
+  }
+}
+
+for (let i = 0; i < 18; i++) {
+  const x = -4200 + i * 500;
+
+  createMountain(
+    x,
+    -4200 - Math.random() * 500,
+    350 + Math.random() * 250,
+    450 + Math.random() * 550
+  );
+
+  createMountain(
+    x + 200,
+    2600 + Math.random() * 500,
+    350 + Math.random() * 250,
+    400 + Math.random() * 450
+  );
+}
+
+// ============================================
+// CITY SKYLINES
+// ============================================
+
+function createCityBlock(centerX, centerZ, buildingCount, spacing) {
+  for (let i = 0; i < buildingCount; i++) {
+    const x = centerX + (Math.random() - 0.5) * spacing;
+    const z = centerZ + (Math.random() - 0.5) * spacing;
+
+    const width = 25 + Math.random() * 45;
+    const depth = 25 + Math.random() * 45;
+    const height = 25 + Math.random() * 130;
+
+    const material = Math.random() > 0.5
+      ? sceneryMaterials.city
+      : sceneryMaterials.cityDark;
+
+    sceneryBox(
+      width,
+      height,
+      depth,
+      material,
+      x,
+      0,
+      z
+    );
+
+    // Glass facade section
+    if (Math.random() > 0.55) {
+      sceneryBox(
+        width * 0.8,
+        height * 0.7,
+        1,
+        sceneryMaterials.glass,
+        x,
+        height * 0.15,
+        z - depth / 2 - 0.6
+      );
+    }
+  }
+}
+
+// Cities outside the airport area
+createCityBlock(1250, -850, 55, 850);
+createCityBlock(-1250, -900, 55, 850);
+createCityBlock(1650, -2100, 35, 700);
+createCityBlock(-1650, -2100, 35, 700);
+
+// ============================================
+// SUBURBAN BUILDINGS
+// ============================================
+
+function createSuburbs(centerX, centerZ, count) {
+  for (let i = 0; i < count; i++) {
+    const x = centerX + (Math.random() - 0.5) * 1100;
+    const z = centerZ + (Math.random() - 0.5) * 1100;
+
+    const width = 12 + Math.random() * 15;
+    const depth = 12 + Math.random() * 15;
+    const height = 7 + Math.random() * 10;
+
+    sceneryBox(
+      width,
+      height,
+      depth,
+      sceneryMaterials.city,
+      x,
+      0,
+      z
+    );
+  }
+}
+
+createSuburbs(2300, -700, 90);
+createSuburbs(-2300, -700, 90);
+
+// ============================================
+// TREES
+// ============================================
+
+function createTree(x, z, size = 1) {
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(
+      0.5 * size,
+      0.8 * size,
+      5 * size,
+      6
+    ),
+    sceneryMaterials.trunk
+  );
+
+  trunk.position.set(x, 2.5 * size, z);
+  scene.add(trunk);
+
+  const leaves = new THREE.Mesh(
+    new THREE.ConeGeometry(3.5 * size, 9 * size, 7),
+    sceneryMaterials.tree
+  );
+
+  leaves.position.set(x, 8 * size, z);
+  scene.add(leaves);
+}
+
+// Tree areas away from the runway and taxiways
+for (let i = 0; i < 100; i++) {
+  createTree(
+    800 + Math.random() * 700,
+    -250 + Math.random() * 1000,
+    0.8 + Math.random() * 1.5
+  );
+
+  createTree(
+    -800 - Math.random() * 700,
+    -250 + Math.random() * 1000,
+    0.8 + Math.random() * 1.5
+  );
+}
+
+console.log("VERSION 0.9 WORLD SCENERY LOADED");
+
 
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
