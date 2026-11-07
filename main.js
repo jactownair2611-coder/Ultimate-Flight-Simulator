@@ -193,6 +193,7 @@ scene.add(aircraft);
 // LOAD A320 MODEL
 // ============================================
 
+
 const loader = new GLTFLoader();
 
 loader.load(
@@ -200,21 +201,14 @@ loader.load(
   (gltf) => {
     console.log("A320 3D model loaded successfully!");
 
-// Remove the backup aircraft exterior,
-// but KEEP its cockpit interior.
-for (const child of [...fallbackAircraft.children]) {
-  if (child.name !== "cockpit-interior") {
-    fallbackAircraft.remove(child);
-  }
-}
+    // Keep the cockpit, remove the backup exterior.
+    for (const child of [...fallbackAircraft.children]) {
+      if (child.name !== "cockpit-interior") {
+        fallbackAircraft.remove(child);
+      }
+    }
 
-const model = gltf.scene;
-    // Hide cockpit when using external camera
-const cockpitInterior = fallbackAircraft.getObjectByName("cockpit-interior");
-
-if (cockpitInterior) {
-  cockpitInterior.visible = cockpitCamera;
-}
+    const model = gltf.scene;
     model.rotation.y = Math.PI / 2;
 
     const bounds = new THREE.Box3().setFromObject(model);
@@ -234,11 +228,13 @@ if (cockpitInterior) {
 
     prepareWingFlex(model);
     aircraft.add(model);
+
+    // Set cockpit visibility.
     const cockpit = aircraft.getObjectByName("cockpit-interior");
 
-if (cockpit) {
-  cockpit.visible = cockpitCamera;
-}
+    if (cockpit) {
+      cockpit.visible = cockpitCamera;
+    }
   },
   undefined,
   (error) => {
@@ -246,6 +242,7 @@ if (cockpit) {
     console.log("Using backup aircraft.");
   }
 );
+
 
 // ============================================
 // FLIGHT MODEL SETTINGS
