@@ -310,13 +310,14 @@ window.addEventListener("keydown", (event) => {
   if (event.key.toLowerCase() === "c") {
   cockpitCamera = !cockpitCamera;
 
-  const cockpitInterior = aircraft.getObjectByName("cockpit-interior");
-  if (cockpitInterior) {
-    cockpitInterior.visible = cockpitCamera;
+  const cockpit = aircraft.getObjectByName("cockpit-interior");
+
+if (cockpit) {
+  cockpit.visible = cockpitCamera;
+}
+
   }
 }
-  }
-
   if (event.key.toLowerCase() === "r") {
     resetAircraft();
   }
