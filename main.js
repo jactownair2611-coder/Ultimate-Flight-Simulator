@@ -623,26 +623,33 @@ function animate() {
   updateWingFlex(dt);
   function updateCamera() {
   if (cockpitCamera) {
-    const cockpitPosition = new THREE.Vector3(0, 1.0, -9.0)
-      .applyQuaternion(aircraft.quaternion)
-      .add(aircraft.position);
+  const cockpit = aircraft.getObjectByName("cockpit-interior");
 
-    const cockpitLook = new THREE.Vector3(0, 0.6, -20)
-      .applyQuaternion(aircraft.quaternion)
-      .add(aircraft.position);
+  if (cockpit) {
+    // Update aircraft transforms before calculating camera position
+    aircraft.updateMatrixWorld(true);
 
-    camera.position.copy(cockpitPosition);
-    camera.lookAt(cockpitLook);
-  } else {
-    const offset = chaseOffset.clone()
-      .applyQuaternion(aircraft.quaternion);
+    // Position the camera relative to the actual cockpit
+    const eyePosition = cockpit.localToWorld(
+      new THREE.Vector3(0, 0.9, -11.6)
+    );
 
-    camera.position.copy(aircraft.position).add(offset);
+    // Look forward through the windshield
+    const lookPosition = cockpit.localToWorld(
+      new THREE.Vector3(0, 0.7, -40)
+    );
 
-    cameraTarget.copy(aircraft.position);
-    cameraTarget.y += 2;
+    camera.position.copy(eyePosition);
 
-    camera.lookAt(cameraTarget);
+    // Keep the camera upright as the aircraft moves
+    camera.up
+      .set(0, 1, 0)
+      .applyQuaternion(cockpit.getWorldQuaternion(
+        new THREE.Quaternion()
+      ));
+
+    camera.lookAt(lookPosition);
+    return;
   }
 }
   updateHUD();
