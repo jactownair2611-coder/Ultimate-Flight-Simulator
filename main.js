@@ -128,28 +128,31 @@ console.log("============================");
 const position = geometry.attributes.position;
 
 
-console.log("===== A320 FULL GEOMETRY DIAGNOSTIC =====");
 
-model.updateMatrixWorld(true);
+console.log("===== A320 VERTEX SAMPLE =====");
 
 model.traverse((object) => {
   if (!object.isMesh) return;
 
-  const geometry = object.geometry;
-  geometry.computeBoundingBox();
-
-  const bounds = geometry.boundingBox;
+  const position = object.geometry.attributes.position;
 
   console.log("Mesh:", object.name);
-  console.log("Vertices:", geometry.attributes.position.count);
-  console.log("Local bounds:", bounds);
+  console.log("Total vertices:", position.count);
 
-  const worldBounds = new THREE.Box3().setFromObject(object);
+  const step = Math.max(1, Math.floor(position.count / 20));
 
-  console.log("World bounds:", worldBounds);
+  for (let i = 0; i < position.count; i += step) {
+    console.log(
+      "Vertex:",
+      i,
+      "X:", position.getX(i).toFixed(2),
+      "Y:", position.getY(i).toFixed(2),
+      "Z:", position.getZ(i).toFixed(2)
+    );
+  }
 });
 
-console.log("==========================================");
+console.log("==============================");
 
 
     // Correct the aircraft's orientation
