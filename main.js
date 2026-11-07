@@ -2485,7 +2485,7 @@ function updateHUD() {
   heading: `${Math.round(heading)}°`,
   vertical: `${Math.round(verticalSpeed * 196.85)} ft/min`,
   gear: " DOWN",
-  flaps: flaps ? " EXTENDED" : " UP",
+  flaps: flaps ? " EXTENDED" : " UP"
   aoa: `${THREE.MathUtils.radToDeg(angleOfAttack).toFixed(1)}°`
 };
     // Update A320 cockpit displays
