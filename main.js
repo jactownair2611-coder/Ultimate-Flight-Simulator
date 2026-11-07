@@ -1980,7 +1980,17 @@ let yaw = 0;
 
 let verticalSpeed = 0;
 let angleOfAttack = 0;
+// ============================================
+// VERSION 1.0.2 - A320 AUTOPILOT
+// ============================================
 
+const autopilot = {
+  enabled: false,
+  targetHeading: 0,
+  targetAltitude: GROUND_Y
+};
+
+console.log("VERSION 1.0.2 AUTOPILOT LOADED");
 let airborne = false;
 let flaps = 0;
 let cockpitCamera = false;
@@ -2020,6 +2030,42 @@ window.addEventListener("keydown", (event) => {
   if (event.key.toLowerCase() === "r") {
     resetAircraft();
   }
+    // AUTOPILOT MASTER SWITCH
+  if (event.key.toLowerCase() === "p") {
+    if (!airborne) {
+      console.log("AP1: Engage after takeoff.");
+      return;
+    }
+
+    autopilot.enabled = !autopilot.enabled;
+
+    if (autopilot.enabled) {
+      autopilot.targetHeading = yaw;
+      autopilot.targetAltitude = aircraft.position.y;
+
+      console.log("AP1 ENGAGED");
+    } else {
+      console.log("AP1 DISENGAGED");
+    }
+  }
+
+  // HEADING SELECTOR
+  if (event.key.toLowerCase() === "j" && autopilot.enabled) {
+    autopilot.targetHeading -= THREE.MathUtils.degToRad(5);
+  }
+
+  if (event.key.toLowerCase() === "k" && autopilot.enabled) {
+    autopilot.targetHeading += THREE.MathUtils.degToRad(5);
+  }
+
+  // ALTITUDE SELECTOR
+  if (event.key.toLowerCase() === "n" && autopilot.enabled) {
+    autopilot.targetAltitude -= 500 / 3.28084;
+  }
+
+  if (event.key.toLowerCase() === "m" && autopilot.enabled) {
+    autopilot.targetAltitude += 500 / 3.28084;
+  }
 });
 
 window.addEventListener("keyup", (event) => {
@@ -2036,7 +2082,7 @@ function resetAircraft() {
   aircraft.rotation.set(0, 0, 0);
 
   velocity.set(0, 0, 0);
-
+ autopilot.enabled = false;
   throttle = 0.35;
   enginePower = 0.35;
   speed = 0;
@@ -2092,6 +2138,38 @@ function updateFlight(dt) {
 
   // CONTROL INPUTS
   pitchTarget += pitchInput * dt * 1.2;
+  // ============================================
+// AUTOPILOT FLIGHT CONTROL
+// ============================================
+
+if (autopilot.enabled) {
+
+  // HEADING HOLD
+  const headingError = Math.atan2(
+    Math.sin(autopilot.targetHeading - yaw),
+    Math.cos(autopilot.targetHeading - yaw)
+  );
+
+  rollTarget = THREE.MathUtils.clamp(
+    headingError * 1.5,
+    -0.35,
+    0.35
+  );
+
+  // ALTITUDE HOLD
+  const altitudeError =
+    autopilot.targetAltitude - aircraft.position.y;
+
+  pitchTarget = THREE.MathUtils.clamp(
+    altitudeError * 0.0012 - velocity.y * 0.035,
+    -0.12,
+    0.20
+  );
+
+} else {
+
+  // MANUAL FLIGHT CONTROLS
+  pitchTarget += pitchInput * dt * 1.2;
   rollTarget += rollInput * dt * 0.85;
 
   if (pitchInput === 0) {
@@ -2102,9 +2180,14 @@ function updateFlight(dt) {
     rollTarget = approach(rollTarget, 0, dt * 0.22);
   }
 
-  pitchTarget = THREE.MathUtils.clamp(pitchTarget, -0.15, 0.35);
-  rollTarget = THREE.MathUtils.clamp(rollTarget, -0.75, 0.75);
+  pitchTarget = THREE.MathUtils.clamp(
+    pitchTarget, -0.15, 0.35
+  );
 
+  rollTarget = THREE.MathUtils.clamp(
+    rollTarget, -0.75, 0.75
+  );
+}
   pitch = approach(pitch, pitchTarget, dt * 2.8);
   roll = approach(roll, rollTarget, dt * 2.4);
 
