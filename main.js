@@ -342,7 +342,7 @@ const MASS = 64000;
 const WING_AREA = 122.6;
 const AIR_DENSITY = 1.225;
 const GRAVITY = 9.81;
-const MAX_THRUST = 125000;
+const MAX_THRUST = 140000;
 
 let throttle = 0.35;
 let speed = 0;
