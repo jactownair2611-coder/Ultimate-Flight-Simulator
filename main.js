@@ -302,6 +302,157 @@ airportBox(
 
 console.log("VERSION 0.8 AIRPORT ENVIRONMENT LOADED");
 
+ // ============================================
+ // VERSION 0.8.1 - AIRPORT LIGHTING
+ // ============================================
+
+const runwayLightMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  emissive: 0xffffff,
+  emissiveIntensity: 3
+});
+
+const blueLightMaterial = new THREE.MeshStandardMaterial({
+  color: 0x2277ff,
+  emissive: 0x2277ff,
+  emissiveIntensity: 3
+});
+
+const greenLightMaterial = new THREE.MeshStandardMaterial({
+  color: 0x22ff77,
+  emissive: 0x22ff77,
+  emissiveIntensity: 3
+});
+
+const redLightMaterial = new THREE.MeshStandardMaterial({
+  color: 0xff2222,
+  emissive: 0xff2222,
+  emissiveIntensity: 3
+});
+
+function airportLight(x, y, z, material, size = 0.65) {
+  const light = new THREE.Mesh(
+    new THREE.SphereGeometry(size, 8, 8),
+    material
+  );
+
+  light.position.set(x, y, z);
+  scene.add(light);
+
+  return light;
+}
+
+// ============================================
+// RUNWAY EDGE LIGHTS
+// ============================================
+
+for (let z = 230; z >= -1930; z -= 40) {
+  airportLight(-33, 0.45, z, runwayLightMaterial);
+  airportLight(33, 0.45, z, runwayLightMaterial);
+}
+
+// ============================================
+// RUNWAY THRESHOLD LIGHTS
+// ============================================
+
+for (let x = -28; x <= 28; x += 4) {
+  airportLight(x, 0.45, 245, greenLightMaterial);
+  airportLight(x, 0.45, -1945, redLightMaterial);
+}
+
+// ============================================
+// TAXIWAY EDGE LIGHTS
+// ============================================
+
+for (let z = 220; z >= -1900; z -= 55) {
+  airportLight(63, 0.4, z, blueLightMaterial, 0.55);
+  airportLight(87, 0.4, z, blueLightMaterial, 0.55);
+}
+
+// ============================================
+// TAXIWAY CENTERLINE LIGHTS
+// ============================================
+
+for (let z = 200; z >= -1900; z -= 75) {
+  airportLight(75, 0.3, z, greenLightMaterial, 0.35);
+}
+
+// ============================================
+// APPROACH LIGHTING
+// ============================================
+
+// Lights beyond the first runway end
+for (let z = 285; z <= 585; z += 30) {
+  airportLight(0, 0.5, z, runwayLightMaterial, 0.7);
+
+  airportLight(-6, 0.5, z, runwayLightMaterial, 0.45);
+  airportLight(6, 0.5, z, runwayLightMaterial, 0.45);
+}
+
+// Lights beyond the opposite runway end
+for (let z = -1980; z >= -2280; z -= 30) {
+  airportLight(0, 0.5, z, runwayLightMaterial, 0.7);
+
+  airportLight(-6, 0.5, z, runwayLightMaterial, 0.45);
+  airportLight(6, 0.5, z, runwayLightMaterial, 0.45);
+}
+
+// ============================================
+// TAXIWAY DIRECTION SIGNS
+// ============================================
+
+function airportSign(label, x, y, z) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 192;
+
+  const context = canvas.getContext("2d");
+
+  context.fillStyle = "#075b32";
+  context.fillRect(0, 0, 512, 192);
+
+  context.strokeStyle = "#ffffff";
+  context.lineWidth = 10;
+  context.strokeRect(5, 5, 502, 182);
+
+  context.fillStyle = "#ffffff";
+  context.font = "bold 100px Arial";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(label, 256, 96);
+
+  const texture = new THREE.CanvasTexture(canvas);
+
+  const sign = new THREE.Mesh(
+    new THREE.PlaneGeometry(8, 3),
+    new THREE.MeshStandardMaterial({
+      map: texture,
+      emissive: 0x183d25,
+      emissiveIntensity: 0.8
+    })
+  );
+
+  sign.position.set(x, y, z);
+  scene.add(sign);
+
+  airportBox(
+    0.3, 2.5, 0.3,
+    terminalMaterial,
+    x, y - 2.5, z
+  );
+}
+
+airportSign("A →", 98, 3, -300);
+airportSign("B →", 98, 3, -1400);
+airportSign("GATE 1", 270, 3, -630);
+airportSign("GATE 2", 270, 3, -735);
+airportSign("GATE 3", 270, 3, -840);
+airportSign("GATE 4", 270, 3, -945);
+airportSign("GATE 5", 270, 3, -1050);
+
+console.log("VERSION 0.8.1 AIRPORT LIGHTING LOADED");
+
+
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
 // ============================================
