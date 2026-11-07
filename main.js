@@ -234,10 +234,10 @@ if (cockpitInterior) {
 
     prepareWingFlex(model);
     aircraft.add(model);
-    const cockpitInterior = aircraft.getObjectByName("cockpit-interior");
+    const cockpit = aircraft.getObjectByName("cockpit-interior");
 
-if (cockpitInterior) {
-  cockpitInterior.visible = cockpitCamera;
+if (cockpit) {
+  cockpit.visible = cockpitCamera;
 }
   },
   undefined,
