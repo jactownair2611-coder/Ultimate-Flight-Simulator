@@ -2068,9 +2068,7 @@ function approach(current, target, amount) {
 // AERODYNAMIC FLIGHT MODEL
 // ============================================
 // WEATHER FLIGHT PHYSICS
-const weatherAirVelocity = new THREE.Vector3();
 const weatherWindVelocity = new THREE.Vector3();
-
 let weatherTurbulenceClock = 0;
 
 function updateFlight(dt) {
