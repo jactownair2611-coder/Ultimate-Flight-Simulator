@@ -149,6 +149,132 @@ function airportBox(width, height, length, material, x, y, z) {
     material
   );
 
+// ============================================
+// VERSION 0.8.1 - AIRPORT GENERATOR
+// ============================================
+
+function createAirport(config) {
+
+  const airport = new THREE.Group();
+
+  airport.name = config.name;
+  airport.position.set(
+    config.x || 0,
+    0,
+    config.z || 0
+  );
+
+  // Local airport object helper
+  function addAirportBox(width, height, length, material, x, y, z) {
+
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(width, height, length),
+      material
+    );
+
+    mesh.position.set(x, y, z);
+    mesh.receiveShadow = true;
+    mesh.castShadow = true;
+
+    airport.add(mesh);
+
+    return mesh;
+  }
+
+  // Runway
+  addAirportBox(
+    config.runwayWidth,
+    0.25,
+    config.runwayLength,
+    airportAsphalt,
+    0,
+    0.125,
+    0
+  );
+
+  // Runway centerline
+  for (
+    let z = -config.runwayLength / 2 + 50;
+    z < config.runwayLength / 2 - 30;
+    z += 90
+  ) {
+    addAirportBox(
+      0.8,
+      0.04,
+      35,
+      airportWhite,
+      0,
+      0.16,
+      z
+    );
+  }
+
+// ============================================
+// AIRPORT GENERATOR TEST
+// ============================================
+
+const testAirport = createAirport({
+  name: "Generator Test Airport",
+
+  x: 1200,
+  z: -850,
+
+  runwayLength: 1400,
+  runwayWidth: 50,
+
+  taxiwayWidth: 22,
+  taxiwayOffset: 75
+});
+
+  // Runway edge markings
+  for (const x of [
+    -config.runwayWidth / 2 + 3,
+    config.runwayWidth / 2 - 3
+  ]) {
+    addAirportBox(
+      0.6,
+      0.04,
+      config.runwayLength,
+      airportWhite,
+      x,
+      0.16,
+      0
+    );
+  }
+
+  // Parallel taxiway
+  addAirportBox(
+    config.taxiwayWidth || 20,
+    0.12,
+    config.runwayLength,
+    airportAsphalt,
+    config.taxiwayOffset || 65,
+    0.02,
+    0
+  );
+
+  // Taxiway centerline
+  for (
+    let z = -config.runwayLength / 2 + 30;
+    z < config.runwayLength / 2;
+    z += 35
+  ) {
+    addAirportBox(
+      0.35,
+      0.04,
+      16,
+      taxiYellow,
+      config.taxiwayOffset || 65,
+      0.11,
+      z
+    );
+  }
+
+  scene.add(airport);
+
+  return airport;
+}
+
   mesh.position.set(x, y, z);
   mesh.receiveShadow = true;
   mesh.castShadow = true;
