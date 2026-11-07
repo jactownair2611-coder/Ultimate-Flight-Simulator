@@ -565,9 +565,9 @@ const thrustAcceleration =
       0.5 * AIR_DENSITY * speed * speed;
 
     lift =
-      dynamicPressure *
-      WING_AREA *
-      liftCoefficient / MASS;
+  dynamicPressure *
+  WING_AREA *
+  liftCoefficient / MASS;
 
     const dragCoefficient =
       0.025 +
@@ -650,20 +650,24 @@ wingFlexAmount = approach(
   aircraft.position.addScaledVector(velocity, dt);
 
   // TAKEOFF
-  if (!airborne) {
+  // TAKEOFF
+if (!airborne) {
 
-    aircraft.position.y = GROUND_Y;
-    velocity.y = 0;
+  aircraft.position.y = GROUND_Y;
+  velocity.y = 0;
 
-    if (
-  speed > 54 &&
-  lift > GRAVITY * 0.75 &&
-  pitch > 0.04
-) {
-  airborne = true;
-}
+  const takeoffSpeed = 54; // approximately 105 knots
 
-  } else {
+  if (
+    speed >= takeoffSpeed &&
+    pitch >= 0.04 &&
+    lift > 0
+  ) {
+    airborne = true;
+    console.log("A320 TAKEOFF!");
+  }
+
+} else {
 
     // LANDING
     if (aircraft.position.y <= GROUND_Y) {
