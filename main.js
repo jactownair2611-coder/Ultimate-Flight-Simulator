@@ -1357,6 +1357,225 @@ function updateRoadTraffic(dt) {
 
 console.log("VERSION 0.9.3 ROADS AND TRAFFIC LOADED");
 
+ // ============================================
+ // VERSION 0.9.4 - DYNAMIC DAY/NIGHT CYCLE
+ // ============================================
+
+// In-game clock
+let simulatorTime = 10;
+
+const secondsPerGameHour = 10;
+
+// Lighting
+const cycleAmbientLight = new THREE.HemisphereLight(
+  0xb8d7ff,
+  0x41402f,
+  1
+);
+
+scene.add(cycleAmbientLight);
+
+const cycleSunLight = new THREE.DirectionalLight(
+  0xffffff,
+  2
+);
+
+cycleSunLight.position.set(0, 3000, 0);
+cycleSunLight.castShadow = false;
+
+scene.add(cycleSunLight);
+
+// Sun
+const sunMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(90, 24, 16),
+  new THREE.MeshBasicMaterial({
+    color: 0xffe6a3
+  })
+);
+
+scene.add(sunMesh);
+
+// Moon
+const moonMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(65, 24, 16),
+  new THREE.MeshBasicMaterial({
+    color: 0xdce6f5
+  })
+);
+
+scene.add(moonMesh);
+
+// Sky colors
+const cycleNightColor = new THREE.Color(0x09152d);
+const cycleDawnColor = new THREE.Color(0xe99b79);
+const cycleDayColor = new THREE.Color(0x87bce8);
+const cycleDuskColor = new THREE.Color(0xc97864);
+
+const cycleSkyColor = new THREE.Color();
+
+// ============================================
+// NIGHT SKY STARS
+// ============================================
+
+const starPositions = [];
+
+let starSeed = 73921;
+
+function starRandom() {
+  starSeed = (starSeed * 16807) % 2147483647;
+  return (starSeed - 1) / 2147483646;
+}
+
+for (let i = 0; i < 350; i++) {
+  const angle = starRandom() * Math.PI * 2;
+  const height = starRandom() * 0.9 + 0.1;
+
+  const radius = 4800;
+
+  starPositions.push(
+    Math.cos(angle) * radius,
+    height * radius,
+    Math.sin(angle) * radius
+  );
+}
+
+const starGeometry = new THREE.BufferGeometry();
+
+starGeometry.setAttribute(
+  "position",
+  new THREE.Float32BufferAttribute(starPositions, 3)
+);
+
+const starMaterial = new THREE.PointsMaterial({
+  color: 0xffffff,
+  size: 13,
+  sizeAttenuation: true,
+  transparent: true,
+  opacity: 0
+});
+
+const starField = new THREE.Points(
+  starGeometry,
+  starMaterial
+);
+
+scene.add(starField);
+
+// ============================================
+// DAY/NIGHT UPDATE
+// ============================================
+
+function updateDayNight(dt) {
+  simulatorTime += dt / secondsPerGameHour;
+
+  if (simulatorTime >= 24) {
+    simulatorTime -= 24;
+  }
+
+  // Sun rises at 06:00 and sets at 18:00
+  const sunAngle =
+    ((simulatorTime - 6) / 12) * Math.PI;
+
+  const sunHeight = Math.sin(sunAngle);
+
+  const daylight = THREE.MathUtils.clamp(
+    sunHeight,
+    0,
+    1
+  );
+
+  // Position the sun
+  const skyRadius = 4200;
+
+  sunMesh.position.set(
+    Math.cos(sunAngle) * skyRadius,
+    sunHeight * 3200,
+    -1200
+  );
+
+  // Position the moon opposite the sun
+  moonMesh.position.set(
+    -sunMesh.position.x,
+    -sunMesh.position.y,
+    -1200
+  );
+
+  sunMesh.visible = sunHeight > 0;
+  moonMesh.visible = sunHeight <= 0;
+
+  // Move directional light with the sun
+  cycleSunLight.position.copy(sunMesh.position);
+
+  // Sunrise and sunset colors
+  const sunriseAmount = Math.exp(
+    -Math.pow((simulatorTime - 6) / 1.5, 2)
+  );
+
+  const sunsetAmount = Math.exp(
+    -Math.pow((simulatorTime - 18) / 1.5, 2)
+  );
+
+  // Blend night into daytime
+  cycleSkyColor.copy(cycleNightColor).lerp(
+    cycleDayColor,
+    daylight
+  );
+
+  // Add warm sunrise/sunset colors
+  cycleSkyColor.lerp(
+    cycleDawnColor,
+    sunriseAmount * 0.8
+  );
+
+  cycleSkyColor.lerp(
+    cycleDuskColor,
+    sunsetAmount * 0.8
+  );
+
+  scene.background.copy(cycleSkyColor);
+
+  if (scene.fog) {
+    scene.fog.color.copy(cycleSkyColor);
+  }
+
+  // Adjust world lighting
+  cycleAmbientLight.intensity =
+    0.12 + daylight * 0.95;
+
+  cycleSunLight.intensity =
+    0.05 + daylight * 2.0;
+
+  starMaterial.opacity =
+    1 - daylight;
+}
+
+// ============================================
+// MANUAL TIME CONTROL
+// ============================================
+
+// Press [ to move time backward
+// Press ] to move time forward
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "[") {
+    simulatorTime -= 1;
+
+    if (simulatorTime < 0) {
+      simulatorTime += 24;
+    }
+  }
+
+  if (event.key === "]") {
+    simulatorTime += 1;
+
+    if (simulatorTime >= 24) {
+      simulatorTime -= 24;
+    }
+  }
+});
+
+console.log("VERSION 0.9.4 DAY NIGHT CYCLE LOADED");
+
 
 // ============================================
 // VERSION 0.6 - DYNAMIC WING FLEX
@@ -1914,6 +2133,7 @@ updateWingFlex(dt);
 updateGroundVehicles(dt);
 updateClouds(dt);
 updateRoadTraffic(dt);
+updateDayNight(dt);
 updateCamera();
 updateHUD();
 
