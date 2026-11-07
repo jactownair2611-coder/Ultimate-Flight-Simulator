@@ -2473,21 +2473,41 @@ function updateCamera() {
 // HUD
 // ============================================
   
+
 function updateHUD() {
   const heading =
     (THREE.MathUtils.radToDeg(yaw) + 360) % 360;
 
   const values = {
-  pitch: `${THREE.MathUtils.radToDeg(pitch).toFixed(1)}°`,
-  speed: `${Math.round(speed * 1.94384)} kt`,
-  altitude: `${Math.round(aircraft.position.y * 3.28084)} ft`,
-  throttle: `${Math.round(throttle * 100)}%`,
-  heading: `${Math.round(heading)}°`,
-  vertical: `${Math.round(verticalSpeed * 196.85)} ft/min`,
-  gear: " DOWN",
-  flaps: flaps ? " EXTENDED" : " UP"
-  aoa: `${THREE.MathUtils.radToDeg(angleOfAttack).toFixed(1)}°`
-};
+    pitch: `${THREE.MathUtils.radToDeg(pitch).toFixed(1)}°`,
+    speed: `${Math.round(speed * 1.94384)} kt`,
+    altitude: `${Math.round(aircraft.position.y * 3.28084)} ft`,
+    throttle: `${Math.round(throttle * 100)}%`,
+    heading: `${Math.round(heading)}°`,
+    vertical: `${Math.round(verticalSpeed * 196.85)} ft/min`,
+    gear: " DOWN",
+    flaps: flaps ? " EXTENDED" : " UP",
+    aoa: `${THREE.MathUtils.radToDeg(angleOfAttack).toFixed(1)}°`
+  };
+
+  // Update the existing simulator HUD
+  for (const [id, value] of Object.entries(values)) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+
+  // Update A320 cockpit displays
+  if (fallbackAircraft.userData.updateCockpitDisplays) {
+    fallbackAircraft.userData.updateCockpitDisplays({
+      speed: speed * 1.94384,
+      altitude: aircraft.position.y * 3.28084,
+      pitch: THREE.MathUtils.radToDeg(pitch),
+      roll: THREE.MathUtils.radToDeg(roll),
+      verticalSpeed: verticalSpeed * 196.85
+    });
+  }
+}
+  
     // Update A320 cockpit displays
   if (fallbackAircraft.userData.updateCockpitDisplays) {
     fallbackAircraft.userData.updateCockpitDisplays({
