@@ -2137,7 +2137,6 @@ function updateFlight(dt) {
   enginePower = approach(enginePower, throttle, dt * spoolRate);
 
   // CONTROL INPUTS
-  pitchTarget += pitchInput * dt * 1.2;
   // ============================================
 // AUTOPILOT FLIGHT CONTROL
 // ============================================
@@ -2455,6 +2454,7 @@ function updateHUD() {
     (THREE.MathUtils.radToDeg(yaw) + 360) % 360;
 
   const values = {
+    pitch: `${THREE.MathUtils.radToDeg(pitch).toFixed(1)}°`,
     speed: `${Math.round(speed * 1.94384)} kt`,
     altitude: `${Math.round(aircraft.position.y * 3.28084)} ft`,
     throttle: `${Math.round(throttle * 100)}%`,
