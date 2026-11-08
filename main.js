@@ -797,6 +797,69 @@ const testAirport = createAirport({
 
 console.log("AIRPORT GENERATOR TEST LOADED");
 
+// ============================================
+// VERSION 0.9 - AI AIRCRAFT SPAWNER
+// ============================================
+
+const aiAircraft = [];
+
+function spawnAIAircraft(airport, gateIndex, flightNumber) {
+
+  const network = airport.userData.taxiwayNetwork;
+
+  if (!network || !network.gates[gateIndex]) {
+    console.error("AI AIRCRAFT: INVALID GATE");
+    return null;
+  }
+
+  // Create an A320 using the existing aircraft model
+  const aircraft = createA320(THREE);
+
+  aircraft.name = "AI Aircraft " + flightNumber;
+
+  // Get selected gate
+  const gate = network.gates[gateIndex];
+
+  // Position aircraft at gate
+  aircraft.position.copy(gate.position);
+
+  // Face toward the taxiway
+  aircraft.rotation.y = Math.PI / 2;
+
+  // Add aircraft to its airport
+  airport.add(aircraft);
+
+  // AI aircraft information
+  aircraft.userData.ai = {
+    flightNumber: flightNumber,
+    aircraftType: "A320-200",
+    airline: "AI Airline",
+    state: "PARKED",
+    gate: gate.id,
+    waypointIndex: 0,
+    speed: 0,
+    targetSpeed: 0
+  };
+
+  aiAircraft.push(aircraft);
+
+  console.log(
+    "AI AIRCRAFT SPAWNED:",
+    flightNumber,
+    "AT",
+    gate.id
+  );
+
+  return aircraft;
+}
+
+// Spawn our first AI aircraft
+const firstAI = spawnAIAircraft(
+  testAirport,
+  0,
+  "AI001"
+);
+
   
 // ============================================
 // PARALLEL TAXIWAY
