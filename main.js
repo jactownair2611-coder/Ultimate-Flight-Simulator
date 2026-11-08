@@ -570,6 +570,95 @@ function createAirport(config) {
   });
 
   // ============================================
+  // VERSION 0.9 - AI TAXIWAY WAYPOINT SYSTEM
+  // ============================================
+
+  const gateStandX = apronX + 10;
+
+  // Store the airport's taxiway network
+  airport.userData.taxiwayNetwork = {
+
+    coordinateSpace: "airport-local",
+
+    taxiwayCenterlineX: taxiwayOffset,
+
+    runwayCenterlineX: 0,
+
+    gates: gatePositions.map((z, index) => {
+
+      return {
+        id: "GATE " + (index + 1),
+
+        position: new THREE.Vector3(
+          gateStandX,
+          0.5,
+          z
+        ),
+
+        routes: exitPositions.map((exitZ) => {
+
+          const runwayEdgeX =
+            config.runwayWidth / 2;
+
+          const holdShortX = runwayEdgeX + 9;
+
+          return {
+            runwayExitZ: exitZ,
+
+            waypoints: [
+
+              // Leave parking stand
+              new THREE.Vector3(
+                gateStandX, 0.5, z
+              ),
+
+              // Move across apron
+              new THREE.Vector3(
+                apronX, 0.5, z
+              ),
+
+              // Join apron taxiway connection
+              new THREE.Vector3(
+                apronX, 0.5, 0
+              ),
+
+              // Join parallel taxiway
+              new THREE.Vector3(
+                taxiwayOffset, 0.5, 0
+              ),
+
+              // Follow taxiway to runway exit
+              new THREE.Vector3(
+                taxiwayOffset, 0.5, exitZ
+              ),
+
+              // Stop before runway
+              new THREE.Vector3(
+                holdShortX, 0.5, exitZ
+              ),
+
+              // Enter runway after clearance
+              new THREE.Vector3(
+                0, 0.5, exitZ
+              )
+            ]
+          };
+        })
+      };
+    }),
+
+    runwayExits: exitPositions.map((z) => ({
+      x: config.runwayWidth / 2,
+      z: z
+    }))
+  };
+
+  console.log(
+    "AI TAXIWAY NETWORK CREATED",
+    airport.userData.taxiwayNetwork
+  );
+
+  // ============================================
   // AIRPORT LIGHTING SYSTEM
   // ============================================
 
