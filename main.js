@@ -229,6 +229,82 @@ function createAirport(config) {
     );
   }
 
+  // ============================================
+  // RUNWAY THRESHOLD MARKINGS
+  // ============================================
+
+  for (const end of [-1, 1]) {
+
+    const thresholdZ =
+      end * (config.runwayLength / 2 - 35);
+
+    const stripeCount = Math.floor(
+      config.runwayWidth / 5
+    );
+
+    for (let i = 0; i < stripeCount; i++) {
+
+      const stripeX =
+        -config.runwayWidth / 2 + 5 + i * 5;
+
+      addAirportBox(
+        1.5, 0.05, 24,
+        airportWhite,
+        stripeX, 0.17, thresholdZ
+      );
+    }
+  }
+
+  // ============================================
+  // RUNWAY DESIGNATION NUMBERS
+  // ============================================
+
+  function addRunwayNumber(number, z) {
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, 256, 128);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 100px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(number, 128, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+
+    const numberMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(25, 12),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      })
+    );
+
+    numberMesh.rotation.x = -Math.PI / 2;
+    numberMesh.position.set(0, 0.19, z);
+
+    airport.add(numberMesh);
+  }
+
+  const runwayNumbers =
+    config.runwayNumbers || ["09", "27"];
+
+  addRunwayNumber(
+    runwayNumbers[0],
+    -config.runwayLength / 2 + 75
+  );
+
+  addRunwayNumber(
+    runwayNumbers[1],
+    config.runwayLength / 2 - 75
+  );
+
   // PARALLEL TAXIWAY
   const taxiwayOffset = config.taxiwayOffset || 65;
 
@@ -579,97 +655,7 @@ const testAirport = createAirport({
 
 console.log("AIRPORT GENERATOR TEST LOADED");
 
-  // ============================================
-  // RUNWAY THRESHOLD MARKINGS
-  // ============================================
-
-  for (const end of [-1, 1]) {
-
-    const thresholdZ =
-      end * (config.runwayLength / 2 - 35);
-
-    // White threshold stripes
-    const stripeCount = Math.floor(
-      config.runwayWidth / 5
-    );
-
-    for (let i = 0; i < stripeCount; i++) {
-
-      const stripeX =
-        -config.runwayWidth / 2 +
-        5 +
-        i * 5;
-
-      addAirportBox(
-        1.5,
-        0.05,
-        24,
-        airportWhite,
-        stripeX,
-        0.17,
-        thresholdZ
-      );
-    }
-  }
-
-  // ============================================
-  // RUNWAY DESIGNATION NUMBERS
-  // ============================================
-
-  function addRunwayNumber(number, z) {
-
-    const canvas = document.createElement("canvas");
-    canvas.width = 256;
-    canvas.height = 128;
-
-    const ctx = canvas.getContext("2d");
-
-    ctx.clearRect(0, 0, 256, 128);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 100px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.fillText(number, 128, 64);
-
-    const texture = new THREE.CanvasTexture(canvas);
-
-    const numberMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(25, 12),
-      new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        side: THREE.DoubleSide,
-        depthWrite: false
-      })
-    );
-
-    numberMesh.rotation.x = -Math.PI / 2;
-
-    numberMesh.position.set(
-      0,
-      0.19,
-      z
-    );
-
-    airport.add(numberMesh);
-  }
-
-  const runwayNumbers =
-    config.runwayNumbers || ["03", "12"];
-
-  addRunwayNumber(
-    runwayNumbers[0],
-    -config.runwayLength / 2 + 75
-  );
-
-  addRunwayNumber(
-    runwayNumbers[1],
-    config.runwayLength / 2 - 75
-  );
-
-
+  
 // ============================================
 // PARALLEL TAXIWAY
 // ============================================
