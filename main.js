@@ -356,6 +356,208 @@ function createAirport(config) {
       z
     );
   }
+  
+  // ============================================
+  // AIRCRAFT PARKING STANDS
+  // ============================================
+
+  const gatePositions = [-75, 0, 75];
+
+  gatePositions.forEach((z, index) => {
+
+    const standX = apronX + 10;
+    const standWidth = 55;
+    const standLength = 48;
+
+    // Parking stand outline
+    addAirportBox(
+      standWidth, 0.04, 0.7,
+      airportWhite,
+      standX, 0.12, z - standLength / 2
+    );
+
+    addAirportBox(
+      standWidth, 0.04, 0.7,
+      airportWhite,
+      standX, 0.12, z + standLength / 2
+    );
+
+    addAirportBox(
+      0.7, 0.04, standLength,
+      airportWhite,
+      standX - standWidth / 2, 0.12, z
+    );
+
+    addAirportBox(
+      0.7, 0.04, standLength,
+      airportWhite,
+      standX + standWidth / 2, 0.12, z
+    );
+
+    // Aircraft lead-in line
+    addAirportBox(
+      45, 0.04, 0.8,
+      taxiYellow,
+      standX, 0.13, z
+    );
+
+    // Gate sign texture
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#152b43";
+    ctx.fillRect(0, 0, 256, 128);
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 8;
+    ctx.strokeRect(5, 5, 246, 118);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 64px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("GATE " + (index + 1), 128, 64);
+
+    const gateTexture = new THREE.CanvasTexture(canvas);
+
+    const gateSign = new THREE.Mesh(
+      new THREE.PlaneGeometry(12, 6),
+      new THREE.MeshBasicMaterial({
+        map: gateTexture,
+        side: THREE.DoubleSide
+      })
+    );
+
+    gateSign.position.set(
+      standX + 38,
+      4,
+      z
+    );
+
+    airport.add(gateSign);
+  });
+
+  // ============================================
+  // AIRPORT LIGHTING SYSTEM
+  // ============================================
+
+  const lightingGroup = new THREE.Group();
+  lightingGroup.name = "Airport Lighting";
+  airport.add(lightingGroup);
+
+  // LIGHT MATERIALS
+  const runwayLightMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff
+  });
+
+  const thresholdLightMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00ff55
+  });
+
+  const taxiwayLightMaterial = new THREE.MeshBasicMaterial({
+    color: 0x0088ff
+  });
+
+  const approachLightMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff
+  });
+
+  function addAirportLight(x, y, z, material, size = 1) {
+
+    const light = new THREE.Mesh(
+      new THREE.SphereGeometry(size, 8, 8),
+      material
+    );
+
+    light.position.set(x, y, z);
+    lightingGroup.add(light);
+
+    return light;
+  }
+
+  // RUNWAY EDGE LIGHTS
+  for (const x of [
+    -config.runwayWidth / 2 - 2,
+    config.runwayWidth / 2 + 2
+  ]) {
+
+    for (
+      let z = -config.runwayLength / 2;
+      z <= config.runwayLength / 2;
+      z += 60
+    ) {
+
+      addAirportLight(
+        x, 0.8, z,
+        runwayLightMaterial,
+        1.2
+      );
+    }
+  }
+
+  // GREEN THRESHOLD LIGHTS
+  for (const end of [-1, 1]) {
+
+    const z = end * (
+      config.runwayLength / 2 - 5
+    );
+
+    for (
+      let x = -config.runwayWidth / 2;
+      x <= config.runwayWidth / 2;
+      x += 5
+    ) {
+
+      addAirportLight(
+        x, 0.8, z,
+        thresholdLightMaterial,
+        1.3
+      );
+    }
+  }
+
+  // BLUE TAXIWAY EDGE LIGHTS
+  for (const side of [-1, 1]) {
+
+    for (
+      let z = -config.runwayLength / 2;
+      z <= config.runwayLength / 2;
+      z += 55
+    ) {
+
+      addAirportLight(
+        taxiwayOffset +
+          side * ((config.taxiwayWidth || 20) / 2),
+        0.65,
+        z,
+        taxiwayLightMaterial,
+        0.9
+      );
+    }
+  }
+
+  // APPROACH LIGHTS
+  for (const end of [-1, 1]) {
+
+    for (let i = 1; i <= 12; i++) {
+
+      addAirportLight(
+        0,
+        0.8,
+        end * (
+          config.runwayLength / 2 + i * 35
+        ),
+        approachLightMaterial,
+        1.3
+      );
+    }
+  }
+
+  console.log("AIRPORT LIGHTING CREATED");
+
   scene.add(airport);
 
   return airport;
@@ -376,6 +578,97 @@ const testAirport = createAirport({
 });
 
 console.log("AIRPORT GENERATOR TEST LOADED");
+
+  // ============================================
+  // RUNWAY THRESHOLD MARKINGS
+  // ============================================
+
+  for (const end of [-1, 1]) {
+
+    const thresholdZ =
+      end * (config.runwayLength / 2 - 35);
+
+    // White threshold stripes
+    const stripeCount = Math.floor(
+      config.runwayWidth / 5
+    );
+
+    for (let i = 0; i < stripeCount; i++) {
+
+      const stripeX =
+        -config.runwayWidth / 2 +
+        5 +
+        i * 5;
+
+      addAirportBox(
+        1.5,
+        0.05,
+        24,
+        airportWhite,
+        stripeX,
+        0.17,
+        thresholdZ
+      );
+    }
+  }
+
+  // ============================================
+  // RUNWAY DESIGNATION NUMBERS
+  // ============================================
+
+  function addRunwayNumber(number, z) {
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, 256, 128);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 100px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(number, 128, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+
+    const numberMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(25, 12),
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      })
+    );
+
+    numberMesh.rotation.x = -Math.PI / 2;
+
+    numberMesh.position.set(
+      0,
+      0.19,
+      z
+    );
+
+    airport.add(numberMesh);
+  }
+
+  const runwayNumbers =
+    config.runwayNumbers || ["03", "12"];
+
+  addRunwayNumber(
+    runwayNumbers[0],
+    -config.runwayLength / 2 + 75
+  );
+
+  addRunwayNumber(
+    runwayNumbers[1],
+    config.runwayLength / 2 - 75
+  );
+
 
 // ============================================
 // PARALLEL TAXIWAY
