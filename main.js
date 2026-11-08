@@ -367,7 +367,7 @@ function createAirport(config) {
 
 const testAirport = createAirport({
   name: "Generator Test Airport",
-  x: 1000,
+  x: 2900,
   z: -1200,
   runwayLength: 1400,
   runwayWidth: 50,
