@@ -331,6 +331,59 @@ function createAirport(config) {
     );
   }
 
+  // ============================================
+  // RUNWAY EXIT TAXIWAYS
+  // ============================================
+
+  const exitPositions = config.taxiwayExits || [
+    -config.runwayLength / 3,
+    0,
+    config.runwayLength / 3
+  ];
+
+  const runwayEdgeX = config.runwayWidth / 2;
+  const exitWidth = 18;
+
+  for (const z of exitPositions) {
+
+    // Taxiway connection
+    const connectorLength = taxiwayOffset - runwayEdgeX;
+
+    addAirportBox(
+      connectorLength,
+      0.12,
+      exitWidth,
+      airportAsphalt,
+      runwayEdgeX + connectorLength / 2,
+      0.03,
+      z
+    );
+
+    // Hold-short marking
+    addAirportBox(
+      14,
+      0.04,
+      1.5,
+      airportWhite,
+      runwayEdgeX + 9,
+      0.13,
+      z
+    );
+
+    // Yellow taxiway centerline
+    addAirportBox(
+      connectorLength - 4,
+      0.04,
+      0.5,
+      taxiYellow,
+      runwayEdgeX + connectorLength / 2,
+      0.12,
+      z
+    );
+  }
+
+  console.log("RUNWAY EXIT TAXIWAYS CREATED");
+
     // ============================================
   // AIRPORT APRON
   // ============================================
